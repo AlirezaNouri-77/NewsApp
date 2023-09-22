@@ -1,5 +1,7 @@
 package com.example.newsapp.remote.viewmodel
 
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.newsapp.remote.api.NewsViewModelImp
@@ -11,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -29,36 +33,42 @@ class NewsViewModel(
 		private var _baseEffect = Channel<BaseViewModelContract.BaseEffect>(Channel.UNLIMITED)
 		override var baseEFFECT = _baseEffect.receiveAsFlow()
 
+		var newsListScrollState = mutableIntStateOf(0)
+		var newsCategoryState = mutableIntStateOf(0)
+
 		init {
-				readStateNews()
 				handleEffects()
 		}
 
-		override fun getNews() {
-				viewModelScope.launch {
-						newsRepository.getNews()
-				}
-		}
+//		override fun getNews(category: String) {
+//				viewModelScope.launch {
+//						newsRepository.getNews(category = category).collect {
+//								_baseState.value = it
+//						}
+//				}
+//		}
 
 		override fun handleEffects() {
 				viewModelScope.launch {
-						_baseEffect.receiveAsFlow().collectLatest {
-								when (it) {
+						_baseEffect.receiveAsFlow().collectLatest { state ->
+								when (state) {
 										is BaseViewModelContract.BaseEffect.GetData -> {
-												getNews()
+												newsRepository.getNews(state.category).collect {
+														_baseState.value = it
+												}
 										}
 								}
 						}
 				}
 		}
 
-		override fun readStateNews() {
-				viewModelScope.launch {
-						newsRepository.getNews().collect {
-								_baseState.value = it
-						}
-				}
-		}
+//		override fun readStateNews() {
+//				viewModelScope.launch {
+////						newsRepository.getNews().collect {
+////								_baseState.value = it
+////						}
+//				}
+//		}
 
 		override fun setBaseEvent(newsEvent: BaseViewModelContract.BaseEvent) {
 				viewModelScope.launch {

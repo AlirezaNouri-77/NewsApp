@@ -5,6 +5,6 @@ import com.example.newsapp.remote.model.NewsModel
 import kotlinx.coroutines.flow.Flow
 
 interface NewsRepositoryImp {
-    suspend fun getNews(): Flow<BaseViewModelContract.BaseState>
+		suspend fun getNews(category: String): Flow<BaseViewModelContract.BaseState>
 }
 
