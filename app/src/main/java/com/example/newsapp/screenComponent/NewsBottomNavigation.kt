@@ -7,34 +7,38 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavController
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.newsapp.navigation.NavigationRoute
+import com.example.newsapp.remote.viewmodel.NewsViewModel
 import com.example.newsapp.ui.theme.NewsAppTheme
 
 @Composable
 fun NewsBottomNavigation(
-		navController: NavHostController
+		navController: NavHostController,
 ) {
 
-		val BottomListItem = listOf(
+		val bottomListItem = listOf(
 				BottomNavigationSealed.Home,
 				BottomNavigationSealed.Search,
 				BottomNavigationSealed.List,
 		)
 
-		val current = navController.currentDestination?.route
+		val current = navController.currentBackStackEntry?.destination?.route
 
-		Log.d("TAG22", "NewsBottomNavigation: " + current)
-
-		NavigationBar {
-				BottomListItem.forEach {
+		NavigationBar (containerColor = Color.Transparent , contentColor = Color.Transparent , tonalElevation = 0.dp) {
+				bottomListItem.forEach {
 						NavigationBarItem(
 								selected = current == it.route.route,
 								onClick = {

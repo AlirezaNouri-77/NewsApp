@@ -1,6 +1,8 @@
 package com.example.newsapp.screenComponent
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.AnimationState
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,46 +34,57 @@ import com.example.newsapp.util.noRippleClick
 @Composable
 fun ChipsCategory(
 		newsViewModel: NewsViewModel,
-		onClick: (String) -> Unit,
+		onClick: (String , Int) -> Unit,
 ) {
 
 		val chipsArray = arrayOf(
-				"General",
+				"Top",
 				"Business",
+				"Politics",
 				"Entertainment",
-				"General",
 				"Health",
 				"Science",
 				"Sports",
 				"Technology",
+				"Environment",
+				"Food",
+				"World",
+				"Tourism",
 		)
 
-		LazyRow(
-				Modifier.fillMaxWidth(),
-				contentPadding = PaddingValues(5.dp),
-				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.Center,
-		) {
+		Surface (
+				color = Color.White
+		){
+				LazyRow(
+						Modifier.fillMaxWidth(),
+						contentPadding = PaddingValues(5.dp),
+						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.Center,
+				) {
 
-				items(count = chipsArray.size) {
-						ChipsDesign(
-								text = chipsArray[it],
-								onClick = {
-										newsViewModel.newsCategoryState.intValue = it
-										newsViewModel.newsListScrollState.intValue = 0
-										onClick.invoke(chipsArray[it])
-								},
-								index = it,
-								itemSelected = newsViewModel.newsCategoryState.intValue,
-						)
+						items(count = chipsArray.size) {
+								ChipsDesign(
+										text = chipsArray[it],
+										onClick = {
+												onClick.invoke(chipsArray[it] , it)
+												newsViewModel.newsCategoryState.intValue = it
+										},
+										index = it,
+										itemSelected = newsViewModel.newsCategoryState.intValue,
+								)
+						}
+
 				}
-
 		}
+
 }
 
 @Composable
 fun ChipsDesign(
-		text: String, onClick: () -> Unit, index: Int, itemSelected: Int
+		text: String,
+		onClick: () -> Unit,
+		index: Int,
+		itemSelected: Int,
 ) {
 
 		Surface(modifier = Modifier
@@ -79,16 +94,21 @@ fun ChipsDesign(
 				.heightIn(min = 30.dp, max = 50.dp)
 				.padding(end = 5.dp, start = 5.dp)) {
 
-				val fontSize = if (index == itemSelected) 16.sp else 14.sp
-				val fontColor = if (index == itemSelected) Color.Black else Color.Black.copy(alpha = 0.6f)
-				val fontWeight = if (index == itemSelected) FontWeight.Bold else FontWeight.Medium
+				val fontSize = if (index == itemSelected) 18.sp else 14.sp
+				val fontColor = if (index == itemSelected) Color.Black else Color.Black.copy(alpha = 0.5f)
+				val fontWeight = if (index == itemSelected) FontWeight.SemiBold else FontWeight.Medium
 
 				AnimatedContent(
 						targetState = fontSize,
+						contentAlignment = Alignment.Center,
 						label = "",
 				) {
 						Text(
-								text = text, color = fontColor, fontSize = it, fontWeight = fontWeight
+								text = text,
+								color = fontColor,
+								fontSize = it,
+								fontWeight = fontWeight,
+								textAlign = TextAlign.Center,
 						)
 				}
 		}

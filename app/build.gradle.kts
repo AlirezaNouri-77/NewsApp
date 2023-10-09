@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    //id("kotlin-kapt")
     id("com.google.devtools.ksp")
 }
 
@@ -61,7 +60,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
-    testImplementation("junit:junit:4.13.2")
+		implementation("androidx.appcompat:appcompat:1.6.1")
+		testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
@@ -78,13 +78,15 @@ dependencies {
     implementation("io.ktor:ktor-client-android:2.3.4")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.4")
     implementation("io.ktor:ktor-serialization-gson:2.3.4")
+    implementation("io.ktor:ktor-client-okhttp:2.3.4")
 
     implementation("androidx.room:room-ktx:2.5.2")
     implementation("androidx.room:room-runtime:2.5.2")
     annotationProcessor("androidx.room:room-compiler:2.5.2")
-    //noinspection KaptUsageInsteadOfKsp
+
     ksp("androidx.room:room-compiler:2.5.2")
 
     implementation("io.coil-kt:coil-compose:2.4.0")
+
 
 }

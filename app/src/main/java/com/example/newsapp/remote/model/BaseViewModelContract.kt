@@ -7,17 +7,18 @@ interface BaseViewModelContract :
 				data object Idle : BaseState()
 				data object Loading : BaseState()
 				data class Success(var data: Any) : BaseState()
-				data object Error : BaseState()
+				data class Error(var message: String) : BaseState()
 				data object Empty : BaseState()
 		}
 
 		sealed class BaseEvent {
-				data object Message : BaseEvent()
-				data object Error : BaseEvent()
+				data class EventError (var message : String) : BaseEvent()
+				data object Idle : BaseEvent()
+
 		}
 
 		sealed class BaseEffect {
-				data class GetData(var category: String) : BaseEffect()
+				data class GetData(var userInput: String , var page:String) : BaseEffect()
 		}
 
 }

@@ -1,9 +1,13 @@
 package com.example.newsapp.remote.api
 
 import com.example.newsapp.remote.model.BaseViewModelContract
+import kotlinx.coroutines.flow.StateFlow
 
-interface NewsViewModelImp {
-		fun handleEffects()
+interface NewsSearchImpl {
+		fun readSearchNewsFlow(): StateFlow<BaseViewModelContract.BaseState>
+		fun getSearchNews(userSearch: String)
+		fun handleEffect()
 		fun setBaseEvent(newsEvent: BaseViewModelContract.BaseEvent)
 		fun setBaseEffects(newEffect: BaseViewModelContract.BaseEffect)
+
 }

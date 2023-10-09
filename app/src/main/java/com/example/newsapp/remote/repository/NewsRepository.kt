@@ -1,57 +1,92 @@
 package com.example.newsapp.remote.repository
 
 import android.util.Log
+import com.example.newsapp.constant.constant
+import com.example.newsapp.constant.constant.API_KEY
+import com.example.newsapp.constant.constant.API_KEY2
 import com.example.newsapp.constant.constant.BASE_URL
-import com.example.newsapp.local.viewmodel.onIO
-import com.example.newsapp.remote.model.NewsModel
 import com.example.newsapp.remote.api.NewsRepositoryImp
 import com.example.newsapp.remote.model.BaseViewModelContract
+import com.example.newsapp.remote.model.NewsModel
+import com.example.newsapp.util.NoInternet
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.RedirectResponseException
-import io.ktor.client.plugins.ResponseException
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
 import io.ktor.http.URLProtocol
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
-import io.ktor.http.path
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 
 class NewsRepository(
-		private var KtorClient: HttpClient
+		private var ktorClient: HttpClient
 ) : NewsRepositoryImp {
-
 		override suspend fun getNews(
-				category: String
+				category: String,
+				page: String,
 		): Flow<BaseViewModelContract.BaseState> {
+
 				return flow {
 						this.emit(BaseViewModelContract.BaseState.Loading)
-						val response =
-								KtorClient.get {
-										url {
-												protocol = URLProtocol.HTTPS
-												host = BASE_URL
-												appendPathSegments("v2", "top-headlines")
-												parameters.append("country", "us")
-												parameters.append("category", category)
-												parameters.append("apiKey", "6aea97c3195747368196f8a5acaa2343")
+						try {
+								val response =
+										ktorClient.get {
+												url {
+														protocol = URLProtocol.HTTPS
+														host = BASE_URL
+														appendPathSegments("api", "1", "news")
+														parameters.append("category", category)
+														parameters.append("language", "en")
+														if (page.isNotEmpty()) {
+																parameters.append("page", page)
+														}
+														parameters.append("full_content", "1")
+														parameters.append("apiKey", API_KEY2)
+												}
 										}
-								}
-						if (response.status.isSuccess()) {
-								this.emit(BaseViewModelContract.BaseState.Success(response.body() as NewsModel))
-						} else {
-								this.emit(BaseViewModelContract.BaseState.Error)
+								Log.d("URL", "getNews: " + response.body())
+								this.emit(BaseViewModelContract.BaseState.Success(data = response.body() as NewsModel))
+						} catch (e: NoInternet) {
+								this.emit(
+										BaseViewModelContract.BaseState.Error(
+												message = e.toString()
+
+										)
+								)
+						} catch (e: SocketTimeoutException) {
+								this.emit(
+										BaseViewModelContract.BaseState.Error(
+												message = e.toString()
+										)
+								)
 						}
 				}
 		}
 
+		override suspend fun getNewsSearch(userSearch: String): Flow<BaseViewModelContract.BaseState> {
+				return flow {
+						emit(BaseViewModelContract.BaseState.Loading)
+						val response = ktorClient.get {
+								url {
+										protocol = URLProtocol.HTTPS
+										host = BASE_URL
+										appendPathSegments("api", "1", "news")
+										parameters.append("q", userSearch)
+										parameters.append("language", "en")
+										parameters.append("apiKey", constant.API_KEY2)
+								}
+						}
+
+						Log.d("URL", "getNewsSearch: " + response.body())
+
+						if (response.status.isSuccess()) {
+								emit(BaseViewModelContract.BaseState.Success(response.body() as NewsModel))
+						} else {
+								//emit(BaseViewModelContract.BaseState.Error(BaseViewModelContract.BaseEvent.EventError))
+						}
+				}
+		}
 }
 
 
