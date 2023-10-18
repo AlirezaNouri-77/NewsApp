@@ -20,21 +20,15 @@ import com.example.newsapp.remote.model.BaseViewModelContract
 
 @Composable
 fun LoadingPagingItem() {
-		Row(
-				Modifier
+		Text(
+				text = "Loading News",
+				fontSize = 20.sp,
+				fontWeight = FontWeight.SemiBold,
+				textAlign = TextAlign.Center,
+				modifier = Modifier
 						.fillMaxWidth()
-						.height(60.dp)
-						.padding(bottom = 20.dp),
-				verticalAlignment = Alignment.CenterVertically,
-		) {
-				Text(
-						text = "Loading News",
-						fontSize = 19.sp,
-						fontWeight = FontWeight.SemiBold,
-						textAlign = TextAlign.Center,
-						modifier = Modifier.fillMaxWidth(),
-				)
-		}
+						.padding(10.dp),
+		)
 }
 
 @Composable

@@ -1,8 +1,12 @@
 package com.example.newsapp.screenComponent
 
+import android.graphics.drawable.AnimatedImageDrawable
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.AnimationState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,7 +38,7 @@ import com.example.newsapp.util.noRippleClick
 @Composable
 fun ChipsCategory(
 		newsViewModel: NewsViewModel,
-		onClick: (String , Int) -> Unit,
+		onClick: (String, Int) -> Unit,
 ) {
 
 		val chipsArray = arrayOf(
@@ -52,9 +56,9 @@ fun ChipsCategory(
 				"Tourism",
 		)
 
-		Surface (
+		Surface(
 				color = Color.White
-		){
+		) {
 				LazyRow(
 						Modifier.fillMaxWidth(),
 						contentPadding = PaddingValues(5.dp),
@@ -66,7 +70,7 @@ fun ChipsCategory(
 								ChipsDesign(
 										text = chipsArray[it],
 										onClick = {
-												onClick.invoke(chipsArray[it] , it)
+												onClick.invoke(chipsArray[it], it)
 												newsViewModel.newsCategoryState.intValue = it
 										},
 										index = it,
@@ -94,6 +98,7 @@ fun ChipsDesign(
 				.heightIn(min = 30.dp, max = 50.dp)
 				.padding(end = 5.dp, start = 5.dp)) {
 
+
 				val fontSize = if (index == itemSelected) 18.sp else 14.sp
 				val fontColor = if (index == itemSelected) Color.Black else Color.Black.copy(alpha = 0.5f)
 				val fontWeight = if (index == itemSelected) FontWeight.SemiBold else FontWeight.Medium
@@ -101,6 +106,12 @@ fun ChipsDesign(
 				AnimatedContent(
 						targetState = fontSize,
 						contentAlignment = Alignment.Center,
+						transitionSpec = {
+								ContentTransform(
+										targetContentEnter = fadeIn(tween(300)),
+										initialContentExit = fadeOut(tween(200))
+								)
+						},
 						label = "",
 				) {
 						Text(

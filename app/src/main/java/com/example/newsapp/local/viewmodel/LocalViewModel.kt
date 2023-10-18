@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.newsapp.local.database.NewsRoomDatabase
 import com.example.newsapp.local.api.LocalViewModelImp
+import com.example.newsapp.local.mapper.EntityMapper
 import com.example.newsapp.local.model.RoomEntity
+import com.example.newsapp.remote.model.Article
 import com.example.newsapp.remote.model.BaseViewModelContract
-import kotlinx.coroutines.Dispatchers
+import com.example.newsapp.util.onIO
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,10 +19,11 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 
 class LocalViewModel(
-		var db: NewsRoomDatabase
+		private var dataBase: NewsRoomDatabase,
+		private var mapper: EntityMapper,
 ) : ViewModel(), BaseViewModelContract, LocalViewModelImp {
 
 		private var _baseState =
@@ -29,61 +32,108 @@ class LocalViewModel(
 				get() = _baseState.asStateFlow()
 				set(value) {}
 
-		private var _baseEvent =
-				MutableSharedFlow<BaseViewModelContract.BaseEvent>()
-		override var baseEVENT: SharedFlow<BaseViewModelContract.BaseEvent>
-				get() = _baseEvent.asSharedFlow()
+		private var _baseEvent = Channel<BaseViewModelContract.BaseEvent>(Channel.UNLIMITED)
+		override var baseEvent: Flow<BaseViewModelContract.BaseEvent>
+				get() = _baseEvent.receiveAsFlow()
 				set(value) {}
 
-		private var _baseEffect = Channel<BaseViewModelContract.BaseEffect>(Channel.UNLIMITED)
-		override var baseEFFECT: Flow<BaseViewModelContract.BaseEffect>
-				get() = _baseEffect.receiveAsFlow()
+		private var _baseEffect =
+				MutableSharedFlow<BaseViewModelContract.BaseEffect>()
+		override var baseEffect: SharedFlow<BaseViewModelContract.BaseEffect>
+				get() = _baseEffect.asSharedFlow()
 				set(value) {}
+
+
+		init {
+				getNewsRoomData()
+				handlerEffects()
+		}
 
 		override fun handlerEffects() {
 				viewModelScope.launch {
-						baseEFFECT.collect {
+						baseEvent.collect {
 								when (it) {
-										is BaseViewModelContract.BaseEffect.GetData -> {
-												getNewsRoomData()
-										}
+										is BaseViewModelContract.BaseEvent.GetData -> getNewsRoomData()
+										is BaseViewModelContract.BaseEvent.InsertDataToDb -> insertItem(it.article)
+										is BaseViewModelContract.BaseEvent.DeleteDataToDb -> deleteItem(it.articleID)
+										is BaseViewModelContract.BaseEvent.DeleteAllDb -> deleteAllItem()
+										else -> {}
 								}
 						}
 				}
 		}
 
-		override suspend fun getNewsRoomData() {
-
-				_baseState.value = BaseViewModelContract.BaseState.Loading
-				val list : List<RoomEntity> = onIO { db.RoomDao().getAllNews() }
-				if (list.isNotEmpty()) {
-						_baseState.value = BaseViewModelContract.BaseState.Success(list)
-				} else {
-						_baseState.value = BaseViewModelContract.BaseState.Empty
-				}
-
-		}
-
-		override fun insertItem(roomEntity: RoomEntity) {
+		override fun getNewsRoomData() {
 				viewModelScope.launch {
-						onIO {
-								db.RoomDao().insertNews(roomEntity)
+						_baseState.value = BaseViewModelContract.BaseState.Loading
+						val list: List<RoomEntity> = onIO { dataBase.RoomDao().getAllNews() }
+						if (list.isNotEmpty()) {
+								_baseState.value =
+										BaseViewModelContract.BaseState.Success(data = mapper.entityToArticle(list))
+						} else {
+								_baseState.value = BaseViewModelContract.BaseState.Empty
 						}
 				}
 		}
 
-		override fun deleteItem(roomEntity: RoomEntity) {
-				viewModelScope.launch {
+		fun isArticleInDb(articleID: String): Boolean {
+				var isSaved = false
+				runBlocking {
 						onIO {
-								db.RoomDao().deleteNews(roomEntity)
+								isSaved = dataBase.RoomDao().isArticleSaved(articleID = articleID)
+						}
+				}
+				return isSaved
+		}
+
+		fun getAllArticleId(): List<String> {
+				var list: List<String> = emptyList()
+				runBlocking {
+						onIO {
+								list = dataBase.RoomDao().getArticleIdList()
+						}
+				}
+				return list
+		}
+
+		override fun deleteAllItem() {
+				runBlocking {
+						onIO {
+								dataBase.RoomDao().deleteAll()
 						}
 				}
 		}
 
+		override fun setBaseEvent(newsEvent: BaseViewModelContract.BaseEvent) {
+				viewModelScope.launch {
+						_baseEvent.send(newsEvent)
+				}
+		}
+
+		override fun setBaseEffects(newsEffect: BaseViewModelContract.BaseEffect) {
+				viewModelScope.launch {
+						_baseEffect.emit(newsEffect)
+				}
+		}
+
+
+		override fun insertItem(article: Article) {
+				viewModelScope.launch {
+						onIO {
+								dataBase.RoomDao().insertNews(mapper.articleToRoomEntity(article))
+						}
+				}
+		}
+
+		override fun deleteItem(articleID: String) {
+				viewModelScope.launch {
+						onIO {
+								dataBase.RoomDao().deleteNews(articleID = articleID)
+						}
+				}
+		}
+
+
 }
 
-suspend inline fun <T> onIO(crossinline action: () -> T): T {
-		return withContext(Dispatchers.IO) {
-				action()
-		}
-}
+

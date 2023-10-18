@@ -7,7 +7,5 @@ interface NewsSearchImpl {
 		fun readSearchNewsFlow(): StateFlow<BaseViewModelContract.BaseState>
 		fun getSearchNews(userSearch: String)
 		fun handleEffect()
-		fun setBaseEvent(newsEvent: BaseViewModelContract.BaseEvent)
-		fun setBaseEffects(newEffect: BaseViewModelContract.BaseEffect)
 
 }

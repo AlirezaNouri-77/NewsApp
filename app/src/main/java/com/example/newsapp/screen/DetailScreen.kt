@@ -1,64 +1,66 @@
 package com.example.newsapp.screen
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.newsapp.ui.theme.NewsAppTheme
+import com.example.newsapp.R
+import com.example.newsapp.local.viewmodel.LocalViewModel
+import com.example.newsapp.navigation.encodeStringNavigation
+import com.example.newsapp.remote.model.Article
+import com.example.newsapp.remote.model.BaseViewModelContract
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DetailScreen(
+		localViewModel: LocalViewModel,
 		content: String,
 		title: String,
 		imageurl: String,
 		pubDate: String,
-		articleId:String,
+		articleId: String,
+		link: String,
+		description: String,
 ) {
+
+		val isSavedInDb = localViewModel.isArticleInDb(articleId)
+
+		var imageState by remember {
+				mutableIntStateOf(0)
+		}
+
+		imageState = if (isSavedInDb) {
+				R.drawable.iconbookmarkfill
+		} else {
+				R.drawable.iconbookmark
+		}
 
 		LazyColumn(
 				modifier = Modifier
@@ -68,7 +70,8 @@ fun DetailScreen(
 				stickyHeader {
 						Row(
 								modifier = Modifier
-										.fillMaxWidth(),
+										.fillMaxWidth()
+										.background(Color.White),
 								horizontalArrangement = Arrangement.SpaceBetween,
 								verticalAlignment = Alignment.CenterVertically,
 						) {
@@ -76,17 +79,52 @@ fun DetailScreen(
 										onClick = { /*TODO*/ },
 										colors = ButtonDefaults.buttonColors(
 												containerColor = Color.Transparent,
-										)
+										),
 								) {
-										Icon(
-												imageVector = Icons.Default.KeyboardArrowLeft,
+										Image(
+												painter = painterResource(id = R.drawable.iconback),
 												contentDescription = "",
-												modifier = Modifier.size(30.dp),
-												tint = Color.Black,
+												modifier = Modifier.size(25.dp),
 										)
 								}
 								Row {
-										//TODO Action Topbar
+										Button(
+												onClick = {
+														if (!isSavedInDb) {
+																localViewModel.setBaseEvent(
+																		BaseViewModelContract.BaseEvent.InsertDataToDb(
+																				Article(
+																						article_id = articleId,
+																						title = title,
+																						description = description,
+																						pubDate = pubDate,
+																						content = content,
+																						imageuri = "",
+																						image_url = imageurl,
+																						link = link,
+																				)
+																		)
+																)
+																imageState = R.drawable.iconbookmarkfill
+														} else {
+																localViewModel.setBaseEvent(
+																		BaseViewModelContract.BaseEvent.DeleteDataToDb(
+																				articleID = articleId
+																		)
+																)
+																imageState = R.drawable.iconbookmark
+														}
+												},
+												colors = ButtonDefaults.buttonColors(
+														containerColor = Color.Transparent,
+												)
+										) {
+												Image(
+														painter = painterResource(id = imageState),
+														contentDescription = "",
+														modifier = Modifier.size(25.dp),
+												)
+										}
 								}
 						}
 				}
@@ -107,14 +145,14 @@ fun DetailScreen(
 
 				item {
 						Text(
-								text = pubDate,
+								text = pubDate.encodeStringNavigation(),
 								fontWeight = FontWeight.Medium,
-								fontSize = 13.sp,
+								fontSize = 14.sp,
 								modifier = Modifier.padding(horizontal = 5.dp)
 						)
 						Spacer(
 								modifier = Modifier
-										.height(2.dp),
+										.height(4.dp),
 						)
 						Text(
 								text = title,
@@ -129,7 +167,7 @@ fun DetailScreen(
 								modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
 						)
 						Text(
-								text = content.replace("$$$", "/"),
+								text = content ,
 								fontSize = 14.sp,
 								fontWeight = FontWeight.Medium,
 								textAlign = TextAlign.Start,
@@ -140,18 +178,4 @@ fun DetailScreen(
 
 		}
 
-}
-
-@Preview(showBackground = true)
-@Composable
-fun perviewDetail() {
-		NewsAppTheme {
-				DetailScreen(
-						content = "With just five days to go, the House and Senate are on a collision course as a government shutdown approaches. \\r\\nThe Senate is working to negotiate a stopgap measure on a bipartisan basis but theres",
-						title = "House and Senate on collision course as shutdown nears",
-						imageurl = "",
-						pubDate = "2023-09-26T20:11:00Z",
-						articleId = "",
-				)
-		}
 }

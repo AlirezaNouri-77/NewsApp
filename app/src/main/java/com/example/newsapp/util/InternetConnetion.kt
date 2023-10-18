@@ -3,6 +3,7 @@ package com.example.newsapp.util
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.util.Log
 import io.ktor.utils.io.errors.IOException
 import okhttp3.Interceptor
 import okhttp3.Response

@@ -1,19 +1,16 @@
 package com.example.newsapp
 
-import android.accounts.NetworkErrorException
 import android.content.Context
-import android.net.http.NetworkException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.newsapp.local.database.RoomDbHelper
+import com.example.newsapp.local.mapper.EntityMapper
 import com.example.newsapp.local.viewmodel.LocalViewModel
 import com.example.newsapp.remote.repository.NewsRepository
 import com.example.newsapp.remote.viewmodel.NewsSearchViewModel
 import com.example.newsapp.remote.viewmodel.NewsViewModel
 import com.example.newsapp.util.InternetConnectionInterceptor
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
@@ -26,20 +23,8 @@ class AppDependencyContainer(
 		context: Context
 ) {
 
-//		private var ktorInstance = HttpClient(Android) {
-//				engine {
-//						this.connectTimeout = 30_000
-//				}
-//				install(Logging) {
-//						this.logger = Logger.DEFAULT
-//				}
-//				install(ContentNegotiation) {
-//						gson()
-//				}
-//		}
-
-
 		private var newsRoomDataBase = RoomDbHelper.getInstance(context)
+		private var mapper = EntityMapper()
 
 		private var newsRepository =
 				NewsRepository(ktorClient = KtorInstance.getInstance(context = context)!!)
@@ -52,7 +37,7 @@ class AppDependencyContainer(
 				}
 		}
 
-		var searchnewsViewModelFactory = object : ViewModelProvider.Factory {
+		var searchNewsViewModelFactory = object : ViewModelProvider.Factory {
 				override fun <T : ViewModel> create(modelClass: Class<T>): T {
 						return NewsSearchViewModel(
 								newsRepository = newsRepository
@@ -64,14 +49,12 @@ class AppDependencyContainer(
 		var roomViewModelFactory = object : ViewModelProvider.Factory {
 				override fun <T : ViewModel> create(modelClass: Class<T>): T {
 						return LocalViewModel(
-								db = newsRoomDataBase
+								dataBase = newsRoomDataBase,
+								mapper = mapper,
 						) as T
 				}
 		}
 
-		companion object {
-
-		}
 
 }
 
@@ -91,9 +74,6 @@ object KtorInstance {
 														this.callTimeout(30, TimeUnit.SECONDS)
 														this.connectTimeout(30, TimeUnit.SECONDS)
 												}
-										}
-										install(HttpRequestRetry){
-												// Todo HttpRequestRetry
 										}
 										install(Logging) {
 												this.logger = Logger.DEFAULT

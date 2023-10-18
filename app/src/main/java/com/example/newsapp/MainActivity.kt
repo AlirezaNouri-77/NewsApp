@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import com.example.newsapp.application.ApplicationClass
 import com.example.newsapp.local.viewmodel.LocalViewModel
 import com.example.newsapp.remote.viewmodel.NewsSearchViewModel
@@ -22,7 +21,7 @@ class MainActivity : ComponentActivity() {
 				val localViewModel =
 						viewModels<LocalViewModel> { appDependencyContainer.roomViewModelFactory }.value
 				val newsSearchViewModel =
-						viewModels<NewsSearchViewModel> { appDependencyContainer.searchnewsViewModelFactory }.value
+						viewModels<NewsSearchViewModel> { appDependencyContainer.searchNewsViewModelFactory }.value
 
 				setContent {
 

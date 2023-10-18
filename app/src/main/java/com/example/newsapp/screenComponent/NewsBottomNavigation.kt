@@ -1,27 +1,20 @@
 package com.example.newsapp.screenComponent
 
-import android.util.Log
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.Image
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.newsapp.R
 import com.example.newsapp.navigation.NavigationRoute
-import com.example.newsapp.remote.viewmodel.NewsViewModel
 import com.example.newsapp.ui.theme.NewsAppTheme
 
 @Composable
@@ -37,15 +30,26 @@ fun NewsBottomNavigation(
 
 		val current = navController.currentBackStackEntry?.destination?.route
 
-		NavigationBar (containerColor = Color.Transparent , contentColor = Color.Transparent , tonalElevation = 0.dp) {
+		NavigationBar(
+				containerColor = Color.Transparent,
+				contentColor = Color.Transparent,
+				tonalElevation = 0.dp
+		) {
 				bottomListItem.forEach {
 						NavigationBarItem(
 								selected = current == it.route.route,
 								onClick = {
 										navController.navigate(it.route.route)
 								},
-								icon = { Icon(imageVector = it.icon, contentDescription = "") },
-								label = { Text(text = it.title) }
+								icon = { Image(painter = painterResource(id = it.icon), contentDescription = "") },
+								label = {
+										Text(
+												text = it.title,
+												fontWeight = FontWeight.Medium,
+												fontSize = 14.sp,
+										)
+								},
+								alwaysShowLabel = false,
 						)
 				}
 		}
@@ -54,27 +58,26 @@ fun NewsBottomNavigation(
 
 sealed class BottomNavigationSealed(
 		var title: String,
-		var icon: ImageVector,
+		var icon: Int,
 		var route: NavigationRoute
 ) {
 		data object Home : BottomNavigationSealed(
-				title = "Home",
-				icon = Icons.Default.Home,
-				route = NavigationRoute.HomeScreen
+				title = "News",
+				icon = R.drawable.iconsnews,
+				route = NavigationRoute.NewsScreen
 		)
 
 		data object Search : BottomNavigationSealed(
 				title = "Search",
-				icon = Icons.Default.Search,
+				icon = R.drawable.iconssearch,
 				route = NavigationRoute.SearchScreen
 		)
 
 		data object List : BottomNavigationSealed(
-				title = "Home",
-				icon = Icons.Default.List,
-				route = NavigationRoute.ReadLater
+				title = "Bookmark",
+				icon = R.drawable.iconsbookmark,
+				route = NavigationRoute.BookmarkScreen
 		)
-
 }
 
 @Preview(showBackground = true)

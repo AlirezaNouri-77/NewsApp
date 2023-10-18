@@ -13,11 +13,16 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import javax.net.ssl.HttpsURLConnection
 
 class NewsRepository(
 		private var ktorClient: HttpClient
@@ -48,10 +53,10 @@ class NewsRepository(
 								Log.d("URL", "getNews: " + response.body())
 								this.emit(BaseViewModelContract.BaseState.Success(data = response.body() as NewsModel))
 						} catch (e: NoInternet) {
+								Log.d("TAG3242", "intercept: " + "ss")
 								this.emit(
 										BaseViewModelContract.BaseState.Error(
 												message = e.toString()
-
 										)
 								)
 						} catch (e: SocketTimeoutException) {
@@ -61,12 +66,12 @@ class NewsRepository(
 										)
 								)
 						}
-				}
+				}.flowOn(Dispatchers.IO)
 		}
 
 		override suspend fun getNewsSearch(userSearch: String): Flow<BaseViewModelContract.BaseState> {
 				return flow {
-						emit(BaseViewModelContract.BaseState.Loading)
+						//emit(BaseViewModelContract.BaseState.Loading)
 						val response = ktorClient.get {
 								url {
 										protocol = URLProtocol.HTTPS
@@ -74,7 +79,7 @@ class NewsRepository(
 										appendPathSegments("api", "1", "news")
 										parameters.append("q", userSearch)
 										parameters.append("language", "en")
-										parameters.append("apiKey", constant.API_KEY2)
+										parameters.append("apiKey", API_KEY2)
 								}
 						}
 

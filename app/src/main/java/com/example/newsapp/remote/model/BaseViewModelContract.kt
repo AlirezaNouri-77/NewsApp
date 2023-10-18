@@ -1,7 +1,7 @@
 package com.example.newsapp.remote.model
 
 interface BaseViewModelContract :
-		BaseViewModelUndirectional<BaseViewModelContract.BaseState, BaseViewModelContract.BaseEvent, BaseViewModelContract.BaseEffect> {
+		BaseViewModelBlueprint<BaseViewModelContract.BaseState, BaseViewModelContract.BaseEvent, BaseViewModelContract.BaseEffect> {
 
 		sealed class BaseState {
 				data object Idle : BaseState()
@@ -11,14 +11,16 @@ interface BaseViewModelContract :
 				data object Empty : BaseState()
 		}
 
-		sealed class BaseEvent {
+		sealed class BaseEffect {
 				data class EventError (var message : String) : BaseEvent()
-				data object Idle : BaseEvent()
 
 		}
 
-		sealed class BaseEffect {
-				data class GetData(var userInput: String , var page:String) : BaseEffect()
+		sealed class BaseEvent {
+				data class GetData(var userInput: String = "" , var page:String = "") : BaseEvent()
+				data class InsertDataToDb(var article: Article) : BaseEvent()
+				data class DeleteDataToDb(var articleID: String) : BaseEvent()
+				data object DeleteAllDb : BaseEvent()
 		}
 
 }

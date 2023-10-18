@@ -1,7 +1,13 @@
 package com.example.newsapp.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -16,7 +22,13 @@ import com.example.newsapp.remote.viewmodel.NewsSearchViewModel
 import com.example.newsapp.remote.viewmodel.NewsViewModel
 import com.example.newsapp.screen.DetailScreen
 import com.example.newsapp.screen.NewsScreen
+import com.example.newsapp.screen.ReadLaterScreen
 import com.example.newsapp.screen.SearchScreen
+import io.ktor.util.decodeBase64String
+import okio.ByteString.Companion.decodeBase64
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 
 @Composable
 fun NewsNavigation(
@@ -29,30 +41,36 @@ fun NewsNavigation(
 
 		NavHost(
 				navController = navHostController,
-				startDestination = NavigationRoute.HomeScreen.route,
+				startDestination = NavigationRoute.NewsScreen.route,
 				modifier = Modifier.padding(padding)
 		) {
 
 				composable(
-						NavigationRoute.HomeScreen.route,
+						NavigationRoute.NewsScreen.route,
 						enterTransition = {
-								slideIntoContainer(
-										towards = AnimatedContentTransitionScope.SlideDirection.Right,
-										animationSpec = (tween(500))
-								)
+								fadeIn(tween(400, easing = LinearOutSlowInEasing), initialAlpha = 0.4f)
 						},
 						exitTransition = {
-								slideOutOfContainer(
-										towards = AnimatedContentTransitionScope.SlideDirection.Left,
-										animationSpec = (tween(500))
-								)
+								when (targetState.destination.route) {
+										NavigationRoute.DetailScreen.route -> {
+												fadeOut(tween(100))
+										}
+
+										else -> {
+												slideOutOfContainer(
+														towards = AnimatedContentTransitionScope.SlideDirection.Left,
+														animationSpec = tween(500),
+												)
+										}
+								}
+
 						},
 				) {
 						NewsScreen(
 								newsViewModel = newsViewModel,
 								navController = navHostController,
+								localViewModel = localViewModel,
 						)
-
 				}
 
 				composable(
@@ -60,6 +78,7 @@ fun NewsNavigation(
 						arguments = listOf(
 								navArgument(name = "content") {
 										type = NavType.StringType
+										nullable = true
 								},
 								navArgument(name = "imageurl") {
 										type = NavType.StringType
@@ -74,31 +93,62 @@ fun NewsNavigation(
 								navArgument(name = "articleId") {
 										type = NavType.StringType
 								},
-						)
+								navArgument(name = "link") {
+										type = NavType.StringType
+								},
+								navArgument(name = "description") {
+										type = NavType.StringType
+										nullable = true
+								},
+						),
+						enterTransition = {
+								scaleIn(tween(500, easing = FastOutSlowInEasing))
+						},
+						exitTransition = {
+								scaleOut(tween(500, easing = FastOutSlowInEasing))
+						},
 				) { navbackstack ->
 
 						DetailScreen(
-								content = navbackstack.arguments?.getString("content")!!.replace("$$$","/"),
+								localViewModel = localViewModel,
+								content = navbackstack.arguments?.getString("content")!!.decodeStringNavigation(),
 								title = navbackstack.arguments?.getString("title").toString(),
-								imageurl = navbackstack.arguments?.getString("imageurl")!!.replace("$$$","/"),
+								imageurl = navbackstack.arguments?.getString("imageurl")?.decodeStringNavigation() ?: "",
 								pubDate = navbackstack.arguments?.getString("pubDate").toString(),
 								articleId = navbackstack.arguments?.getString("articleId").toString(),
+								link = navbackstack.arguments?.getString("link")?.decodeStringNavigation() ?: "",
+								description = navbackstack.arguments?.getString("description").toString(),
 						)
 
+				}
+
+				composable(
+						NavigationRoute.BookmarkScreen.route,
+						enterTransition = {
+								fadeIn()
+						},
+						exitTransition = {
+								fadeOut()
+						},
+				) {
+						ReadLaterScreen(
+								localViewModel = localViewModel,
+								navController = navHostController,
+						)
 				}
 
 				composable(
 						NavigationRoute.SearchScreen.route,
 						enterTransition = {
 								slideIntoContainer(
-										towards = AnimatedContentTransitionScope.SlideDirection.Left,
-										animationSpec = (tween(500)),
+										towards = AnimatedContentTransitionScope.SlideDirection.Right,
+										animationSpec = tween(500),
 								)
 						},
 						exitTransition = {
 								slideOutOfContainer(
 										towards = AnimatedContentTransitionScope.SlideDirection.Right,
-										animationSpec = (tween(500)),
+										animationSpec = tween(500),
 								)
 						},
 				) {
@@ -107,14 +157,20 @@ fun NewsNavigation(
 						)
 				}
 
-
 		}
+}
+fun String.encodeStringNavigation(): String {
+		return Base64.getUrlEncoder().encodeToString(this.toByteArray())
+}
+
+fun String.decodeStringNavigation(): String {
+		return String(Base64.getUrlDecoder().decode(this))
 }
 
 sealed class NavigationRoute(var route: String) {
-		data object HomeScreen : NavigationRoute("HomeScreen")
-		data object ReadLater : NavigationRoute("ReadLater")
+		data object NewsScreen : NavigationRoute("NewsScreen")
+		data object BookmarkScreen : NavigationRoute("BookmarkScreen")
 		data object SearchScreen : NavigationRoute("SearchScreen")
 		data object DetailScreen :
-				NavigationRoute("DetailScreen/{content}/{imageurl}/{title}/{pubDate}/{articleId}")
+				NavigationRoute("DetailScreen/{content}/{imageurl}/{title}/{pubDate}/{articleId}/{link}/{description}")
 }

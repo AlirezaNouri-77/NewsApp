@@ -15,7 +15,16 @@ interface RoomDao {
 		@Insert
 		fun insertNews(roomEntity: RoomEntity)
 
-		@Delete
-		fun deleteNews(roomEntity: RoomEntity)
+		@Query("DELETE FROM News_Table")
+		fun deleteAll()
+
+		@Query("DELETE FROM News_Table WHERE articleId = :articleID ")
+		fun deleteNews(articleID: String)
+
+		@Query("SELECT EXISTS (SELECT articleId FROM News_Table WHERE articleId = :articleID )")
+		fun isArticleSaved(articleID: String): Boolean
+
+		@Query("SELECT articleId FROM News_Table")
+		fun getArticleIdList():List<String>
 
 }
