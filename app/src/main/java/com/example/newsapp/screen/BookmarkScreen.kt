@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,7 +20,7 @@ import com.example.newsapp.remote.model.BaseViewModelContract
 import com.example.newsapp.screenComponent.NewsListItem
 
 @Composable
-fun ReadLaterScreen(
+fun BookmarkScreen(
 		localViewModel: LocalViewModel,
 		navController: NavController,
 ) {
@@ -37,22 +36,24 @@ fun ReadLaterScreen(
 						LazyColumn(modifier = Modifier.fillMaxSize()) {
 								items(items = data) {
 
-										NewsListItem(listData = it, clickOnItem = { articleClicked ->
-												val content = articleClicked.content.replace("/", "$$$")
-												val imageUrl = articleClicked.image_url?.replace("/", "$$$")
-												val title = articleClicked.title
-												val pubDate = articleClicked.pubDate
-												val articleId = articleClicked.article_id
-												val link = articleClicked.link.replace("/", "$$$")
-												val description = articleClicked.description?.replace("/", "$$$")
+										NewsListItem(
+												listData = it, clickOnItem = { articleClicked ->
 
-												localViewModel.getNewsRoomData()
+														val content = articleClicked.content
+														val imageUrl = articleClicked.image_url
+														val title = articleClicked.title
+														val pubDate = articleClicked.pubDate
+														val articleId = articleClicked.article_id
+														val link = articleClicked.link
+														val description = articleClicked.description
 
-												navController.navigate(
-														"DetailScreen/${content}/${imageUrl}/${title}/${pubDate}/${articleId}/${link}/${description}"
-												)
+														localViewModel.getNewsRoomData()
 
-										})
+														navController.navigate(
+																"DetailScreen/${content}/${imageUrl}/${title}/${pubDate}/${articleId}/${link}/${description}"
+														)
+												}
+										)
 								}
 						}
 				}

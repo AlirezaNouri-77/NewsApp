@@ -1,12 +1,11 @@
 package com.example.newsapp.local.model
 
-import android.net.Uri
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity (tableName = "News_Table")
-data class RoomEntity(
+data class NewsEntity(
 		@PrimaryKey(autoGenerate = true) val id: Int,
 		@ColumnInfo(name = "articleId") var articleId: String,
 		@ColumnInfo(name = "title") var title: String,

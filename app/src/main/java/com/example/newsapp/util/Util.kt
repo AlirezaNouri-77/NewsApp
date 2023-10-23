@@ -18,13 +18,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
+import com.example.newsapp.local.model.SettingDataClass
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 inline fun Modifier.noRippleClick(crossinline onClick: () -> Unit): Modifier = composed {
@@ -71,6 +72,18 @@ suspend inline fun <T> onIO(crossinline action: () -> T): T {
 		return withContext(Dispatchers.IO) {
 				action()
 		}
+}
+
+
+fun List<SettingDataClass>.convertToString(): String {
+		val output = StringBuilder()
+		this.forEachIndexed { index, item ->
+				output.append(item.code)
+				if (this.size != index + 1) {
+						output.append(",")
+				}
+		}
+		return output.toString()
 }
 
 fun LazyListState.isBottomList(): State<Boolean> {

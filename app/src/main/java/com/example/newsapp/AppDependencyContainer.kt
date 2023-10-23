@@ -3,7 +3,7 @@ package com.example.newsapp
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.newsapp.local.database.RoomDbHelper
+import com.example.newsapp.local.database.NewsRoomDatabase
 import com.example.newsapp.local.mapper.EntityMapper
 import com.example.newsapp.local.viewmodel.LocalViewModel
 import com.example.newsapp.remote.repository.NewsRepository
@@ -23,19 +23,10 @@ class AppDependencyContainer(
 		context: Context
 ) {
 
-		private var newsRoomDataBase = RoomDbHelper.getInstance(context)
-		private var mapper = EntityMapper()
+		private var newsRoomDataBase = NewsRoomDatabase.getInstance(context)
 
 		private var newsRepository =
 				NewsRepository(ktorClient = KtorInstance.getInstance(context = context)!!)
-
-		var newsViewModelFactory = object : ViewModelProvider.Factory {
-				override fun <T : ViewModel> create(modelClass: Class<T>): T {
-						return NewsViewModel(
-								newsRepository = newsRepository
-						) as T
-				}
-		}
 
 		var searchNewsViewModelFactory = object : ViewModelProvider.Factory {
 				override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -46,15 +37,22 @@ class AppDependencyContainer(
 		}
 
 
-		var roomViewModelFactory = object : ViewModelProvider.Factory {
+		var localViewModelFactory = object : ViewModelProvider.Factory {
 				override fun <T : ViewModel> create(modelClass: Class<T>): T {
 						return LocalViewModel(
-								dataBase = newsRoomDataBase,
-								mapper = mapper,
+								database = newsRoomDataBase,
 						) as T
 				}
 		}
 
+		var newsViewModelFactory = object : ViewModelProvider.Factory {
+				override fun <T : ViewModel> create(modelClass: Class<T>): T {
+						return NewsViewModel(
+								newsRepository = newsRepository,
+								database = newsRoomDataBase,
+						) as T
+				}
+		}
 
 }
 

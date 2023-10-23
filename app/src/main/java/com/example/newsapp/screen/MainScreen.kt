@@ -3,6 +3,7 @@ package com.example.newsapp.screen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -26,20 +27,25 @@ import com.example.newsapp.screenComponent.topBar.SearchTopBar
 fun MainScreen(
 		newsViewModel: NewsViewModel,
 		localViewModel: LocalViewModel,
-		newsSearchViewModel: NewsSearchViewModel
-) {
+		newsSearchViewModel: NewsSearchViewModel,) {
 
 		val navHostController = rememberNavController()
 		val showSettingBottomSheet = remember {
 				mutableStateOf(false)
 		}
+		val bottomSheetState = rememberModalBottomSheetState()
 
 		navHostController.currentBackStackEntryFlow.collectAsState(initial = NavigationRoute.NewsScreen).value
 		val currentDestination = navHostController.currentDestination?.route
 
 		if (showSettingBottomSheet.value) {
 				BottomSheetSetting(
-						onDismiss = { showSettingBottomSheet.value = false }
+						newsViewModel = newsViewModel,
+						onDismiss = {
+
+								showSettingBottomSheet.value = false
+						},
+						bottomSheetState = bottomSheetState
 				)
 		}
 
@@ -55,6 +61,7 @@ fun MainScreen(
 												}
 										)
 								}
+
 								NavigationRoute.SearchScreen.route -> {
 										SearchTopBar(
 												onSearch = {
@@ -67,6 +74,7 @@ fun MainScreen(
 												},
 										)
 								}
+
 								NavigationRoute.BookmarkScreen.route -> {
 										BookmarkTopBar(
 												clickOnDeleteAll = {

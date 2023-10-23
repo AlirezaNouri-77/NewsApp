@@ -1,7 +1,5 @@
 package com.example.newsapp.screen
 
-import android.util.Log
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +53,10 @@ fun NewsScreen(
 				stateListLazy.scrollToItem(newsViewModel.newsListScrollState.intValue)
 		})
 
+		LaunchedEffect(key1 = Unit, block = {
+				localViewModel.getAllArticleId()
+		})
+
 		LaunchedEffect(key1 = stateListLazy) {
 				snapshotFlow {
 						stateListLazy.firstVisibleItemIndex
@@ -96,12 +98,12 @@ fun NewsScreen(
 										val articleId = articleClicked.article_id
 										val link = articleClicked.link.encodeStringNavigation()
 										val description = articleClicked.description
-										localViewModel.getNewsRoomData()
 										navController.navigate(
 												"DetailScreen/${content}/${imageUrl}/${title}/${pubDate}/${articleId}/${link}/${description}"
 										)
 								},
-								isInReadLater = localViewModel.getAllArticleId().contains(it.article_id)
+								isBookmarked = localViewModel.articleIdList.contains(it.article_id),
+								showBookmarkIcon = true,
 						)
 				}
 
@@ -112,6 +114,11 @@ fun NewsScreen(
 												LoadingShimmer()
 										}
 								}
+
+								is BaseViewModelContract.BaseState.Empty -> {
+										Text(text = newsStateFlow.message)
+								}
+
 								is BaseViewModelContract.BaseState.Error -> {
 										if (newsViewModel.newsMutableList.size == 0) {
 												LoadingItemFail {
@@ -129,11 +136,11 @@ fun NewsScreen(
 												)
 										}
 								}
+
 								else -> {}
 						}
 				}
 		}
-
 }
 
 

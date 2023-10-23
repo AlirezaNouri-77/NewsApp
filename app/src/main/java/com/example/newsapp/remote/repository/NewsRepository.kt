@@ -29,6 +29,8 @@ class NewsRepository(
 ) : NewsRepositoryImp {
 		override suspend fun getNews(
 				category: String,
+				settingQuery:String,
+				settingCategory:String,
 				page: String,
 		): Flow<BaseViewModelContract.BaseState> {
 
@@ -42,7 +44,7 @@ class NewsRepository(
 														host = BASE_URL
 														appendPathSegments("api", "1", "news")
 														parameters.append("category", category)
-														parameters.append("language", "en")
+														parameters.append(settingCategory, settingQuery)
 														if (page.isNotEmpty()) {
 																parameters.append("page", page)
 														}
@@ -51,7 +53,15 @@ class NewsRepository(
 												}
 										}
 								Log.d("URL", "getNews: " + response.body())
-								this.emit(BaseViewModelContract.BaseState.Success(data = response.body() as NewsModel))
+								val data = response.body() as NewsModel
+								if (data.totalResults != 0){
+										this.emit(BaseViewModelContract.BaseState.Success(data = response.body() as NewsModel))
+								} else {
+										this.emit(BaseViewModelContract.BaseState.Empty(
+												message = "Nothing found change your settings and try again"
+										))
+								}
+
 						} catch (e: NoInternet) {
 								Log.d("TAG3242", "intercept: " + "ss")
 								this.emit(

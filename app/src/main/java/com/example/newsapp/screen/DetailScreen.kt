@@ -50,7 +50,7 @@ fun DetailScreen(
 		description: String,
 ) {
 
-		val isSavedInDb = localViewModel.isArticleInDb(articleId)
+		val isSavedInDb = localViewModel.articleIdList.contains(articleId)
 
 		var imageState by remember {
 				mutableIntStateOf(0)

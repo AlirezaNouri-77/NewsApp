@@ -1,10 +1,10 @@
 package com.example.newsapp.local.mapper
 
-import com.example.newsapp.local.model.RoomEntity
+import com.example.newsapp.local.model.NewsEntity
 import com.example.newsapp.remote.model.Article
 
-class EntityMapper : EntityMaperIpml<RoomEntity> {
-		override fun entityToArticle(entitylist: List<RoomEntity>): List<Article> {
+class EntityMapper : EntityMaperIpml<NewsEntity> {
+		override fun entityToArticle(entitylist: List<NewsEntity>): List<Article> {
 				val mutableList: MutableList<Article> = mutableListOf()
 				entitylist.indices.forEach { index ->
 						mutableList.add(
@@ -30,8 +30,8 @@ class EntityMapper : EntityMaperIpml<RoomEntity> {
 				return mutableList
 		}
 
-		override fun articleToRoomEntity(article: Article): RoomEntity {
-				return RoomEntity(
+		override fun articleToRoomEntity(article: Article): NewsEntity {
+				return NewsEntity(
 						id = 0,
 						articleId = article.article_id,
 						title = article.title,

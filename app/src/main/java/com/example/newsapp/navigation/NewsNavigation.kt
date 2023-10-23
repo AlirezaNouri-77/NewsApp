@@ -22,12 +22,8 @@ import com.example.newsapp.remote.viewmodel.NewsSearchViewModel
 import com.example.newsapp.remote.viewmodel.NewsViewModel
 import com.example.newsapp.screen.DetailScreen
 import com.example.newsapp.screen.NewsScreen
-import com.example.newsapp.screen.ReadLaterScreen
+import com.example.newsapp.screen.BookmarkScreen
 import com.example.newsapp.screen.SearchScreen
-import io.ktor.util.decodeBase64String
-import okio.ByteString.Companion.decodeBase64
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 @Composable
@@ -131,7 +127,7 @@ fun NewsNavigation(
 								fadeOut()
 						},
 				) {
-						ReadLaterScreen(
+						BookmarkScreen(
 								localViewModel = localViewModel,
 								navController = navHostController,
 						)
@@ -154,6 +150,8 @@ fun NewsNavigation(
 				) {
 						SearchScreen(
 								newsSearchViewModel = newsSearchViewModel,
+								localViewModel = localViewModel,
+								navController = navHostController,
 						)
 				}
 

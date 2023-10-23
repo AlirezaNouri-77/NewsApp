@@ -19,18 +19,16 @@ class MainActivity : ComponentActivity() {
 				val newsViewModel =
 						viewModels<NewsViewModel> { appDependencyContainer.newsViewModelFactory }.value
 				val localViewModel =
-						viewModels<LocalViewModel> { appDependencyContainer.roomViewModelFactory }.value
+						viewModels<LocalViewModel> { appDependencyContainer.localViewModelFactory }.value
 				val newsSearchViewModel =
 						viewModels<NewsSearchViewModel> { appDependencyContainer.searchNewsViewModelFactory }.value
 
 				setContent {
-
 						MainScreen(
 								newsViewModel = newsViewModel,
 								localViewModel = localViewModel,
 								newsSearchViewModel = newsSearchViewModel
 						)
-
 				}
 		}
 }

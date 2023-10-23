@@ -1,11 +1,18 @@
 package com.example.newsapp.local.viewmodel
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.newsapp.local.database.NewsRoomDatabase
 import com.example.newsapp.local.api.LocalViewModelImp
 import com.example.newsapp.local.mapper.EntityMapper
-import com.example.newsapp.local.model.RoomEntity
+import com.example.newsapp.local.model.ActiveSettingSectionEnum
+import com.example.newsapp.local.model.NewsEntity
+import com.example.newsapp.local.model.SettingDataClass
 import com.example.newsapp.remote.model.Article
 import com.example.newsapp.remote.model.BaseViewModelContract
 import com.example.newsapp.util.onIO
@@ -17,14 +24,24 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class LocalViewModel(
-		private var dataBase: NewsRoomDatabase,
-		private var mapper: EntityMapper,
+		private var database: NewsRoomDatabase,
 ) : ViewModel(), BaseViewModelContract, LocalViewModelImp {
+
+		var articleIdList:List<String> = emptyList()
+		private val entityMapper by lazy {
+				EntityMapper()
+		}
+
+		var settingList: SnapshotStateList<SettingDataClass> = mutableStateListOf()
+		var activeSection: MutableState<ActiveSettingSectionEnum> = mutableStateOf(
+				ActiveSettingSectionEnum.Idle
+		)
 
 		private var _baseState =
 				MutableStateFlow<BaseViewModelContract.BaseState>(BaseViewModelContract.BaseState.Idle)
@@ -43,8 +60,8 @@ class LocalViewModel(
 				get() = _baseEffect.asSharedFlow()
 				set(value) {}
 
-
 		init {
+				getAllArticleId()
 				getNewsRoomData()
 				handlerEffects()
 		}
@@ -57,6 +74,7 @@ class LocalViewModel(
 										is BaseViewModelContract.BaseEvent.InsertDataToDb -> insertItem(it.article)
 										is BaseViewModelContract.BaseEvent.DeleteDataToDb -> deleteItem(it.articleID)
 										is BaseViewModelContract.BaseEvent.DeleteAllDb -> deleteAllItem()
+										is BaseViewModelContract.BaseEvent.UpdateReadState -> updateNewsReadState(newsIsRead = true, newsId = it.articleID)
 										else -> {}
 								}
 						}
@@ -66,40 +84,37 @@ class LocalViewModel(
 		override fun getNewsRoomData() {
 				viewModelScope.launch {
 						_baseState.value = BaseViewModelContract.BaseState.Loading
-						val list: List<RoomEntity> = onIO { dataBase.RoomDao().getAllNews() }
+						val list: List<NewsEntity> = onIO { database.NewsDao().getAllNews() }
 						if (list.isNotEmpty()) {
 								_baseState.value =
-										BaseViewModelContract.BaseState.Success(data = mapper.entityToArticle(list))
+										BaseViewModelContract.BaseState.Success(data = entityMapper.entityToArticle(list))
 						} else {
-								_baseState.value = BaseViewModelContract.BaseState.Empty
+								_baseState.value = BaseViewModelContract.BaseState.Empty("")
 						}
 				}
 		}
 
-		fun isArticleInDb(articleID: String): Boolean {
-				var isSaved = false
-				runBlocking {
+		override fun updateNewsReadState(newsIsRead: Boolean, newsId: String) {
+				// TODO
+				viewModelScope.launch {
 						onIO {
-								isSaved = dataBase.RoomDao().isArticleSaved(articleID = articleID)
+								database.NewsDao().setNewsIsRead(newsIsRead = newsIsRead , newsId = newsId)
 						}
 				}
-				return isSaved
 		}
 
-		fun getAllArticleId(): List<String> {
-				var list: List<String> = emptyList()
+		fun getAllArticleId() {
 				runBlocking {
 						onIO {
-								list = dataBase.RoomDao().getArticleIdList()
+								articleIdList = database.NewsDao().getArticleIdList()
 						}
 				}
-				return list
 		}
 
 		override fun deleteAllItem() {
 				runBlocking {
 						onIO {
-								dataBase.RoomDao().deleteAll()
+								database.NewsDao().deleteAll()
 						}
 				}
 		}
@@ -120,7 +135,7 @@ class LocalViewModel(
 		override fun insertItem(article: Article) {
 				viewModelScope.launch {
 						onIO {
-								dataBase.RoomDao().insertNews(mapper.articleToRoomEntity(article))
+								database.NewsDao().insertNews(entityMapper.articleToRoomEntity(article))
 						}
 				}
 		}
@@ -128,7 +143,7 @@ class LocalViewModel(
 		override fun deleteItem(articleID: String) {
 				viewModelScope.launch {
 						onIO {
-								dataBase.RoomDao().deleteNews(articleID = articleID)
+								database.NewsDao().deleteNews(articleID = articleID)
 						}
 				}
 		}

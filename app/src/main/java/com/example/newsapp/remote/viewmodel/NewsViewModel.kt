@@ -1,14 +1,25 @@
 package com.example.newsapp.remote.viewmodel
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.newsapp.local.database.NewsRoomDatabase
+import com.example.newsapp.local.model.ActiveSettingSectionEnum
+import com.example.newsapp.local.model.SettingDataClass
+import com.example.newsapp.local.model.SettingEntity
+import com.example.newsapp.local.model.SettingListDataClass
 import com.example.newsapp.remote.api.NewsViewModelImp
 import com.example.newsapp.remote.model.Article
 import com.example.newsapp.remote.model.BaseViewModelContract
 import com.example.newsapp.remote.model.NewsModel
 import com.example.newsapp.remote.repository.NewsRepository
+import com.example.newsapp.util.convertToString
+import com.example.newsapp.util.onIO
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,9 +32,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.util.Locale
 
 class NewsViewModel(
-		private var newsRepository: NewsRepository
+		private var newsRepository: NewsRepository,
+		private var database: NewsRoomDatabase,
 ) : ViewModel(), BaseViewModelContract, NewsViewModelImp {
 
 		var nextPage = mutableStateOf("")
@@ -35,6 +49,10 @@ class NewsViewModel(
 		var newsCategoryState = mutableIntStateOf(0)
 		var newsCategory = mutableStateOf("Top")
 
+		var settingList: SnapshotStateList<SettingDataClass> = mutableStateListOf()
+		var activeSection: MutableState<ActiveSettingSectionEnum> = mutableStateOf(
+				ActiveSettingSectionEnum.Idle
+		)
 
 		private var _baseState =
 				MutableStateFlow<BaseViewModelContract.BaseState>(BaseViewModelContract.BaseState.Idle)
@@ -49,16 +67,23 @@ class NewsViewModel(
 
 		private var _baseEffect =
 				MutableSharedFlow<BaseViewModelContract.BaseEffect>()
+
 		override var baseEffect: SharedFlow<BaseViewModelContract.BaseEffect>
 				get() = _baseEffect.asSharedFlow()
 				set(value) {}
 
 		init {
 				viewModelScope.launch {
-						newsRepository.getNews(category = newsCategory.value , page = nextPage.value)
+						provideSetting()
+						handleEffects()
+						handleState()
+						newsRepository.getNews(
+								category = newsCategory.value,
+								page = nextPage.value,
+								settingCategory = activeSection.value.name.lowercase(Locale.getDefault()),
+								settingQuery = settingList.convertToString(),
+						)
 				}
-				handleEffects()
-				handleState()
 		}
 
 		override fun handleState() {
@@ -78,15 +103,23 @@ class NewsViewModel(
 												isPaging.value = false
 												_baseState.value = BaseViewModelContract.BaseState.Idle
 										}
+
 										is BaseViewModelContract.BaseState.Loading -> {
 												canPaging.value = false
 												isPaging.value = true
 										}
+
+										is BaseViewModelContract.BaseState.Empty -> {
+												canPaging.value = false
+												isPaging.value = false
+										}
+
 										is BaseViewModelContract.BaseState.Error -> {
 												_baseState.emit(BaseViewModelContract.BaseState.Error(""))
 												canPaging.value = false
 												isPaging.value = false
 										}
+
 										else -> {}
 								}
 						}
@@ -98,20 +131,45 @@ class NewsViewModel(
 						baseEvent.collect { state ->
 								when (state) {
 										is BaseViewModelContract.BaseEvent.GetData -> {
-														newsRepository.getNews(
-																category = newsCategory.value,
-																page = nextPage.value,
-														).distinctUntilChanged().collectLatest {
-																_baseState.value = it
-														}
+												newsRepository.getNews(
+														category = newsCategory.value,
+														page = nextPage.value,
+														settingCategory = activeSection.value.name.lowercase(Locale.getDefault()),
+														settingQuery = settingList.convertToString(),
+												).distinctUntilChanged().collectLatest {
+														_baseState.value = it
+												}
 										}
+
+										is BaseViewModelContract.BaseEvent.InsertDataToSettingDb -> {
+												viewModelScope.launch {
+														onIO {
+																database.SettingDao().updateSettings(
+																		settingSection = activeSection.value,
+																		settingEntity = SettingListDataClass(list = settingList.toList()),
+																)
+														}
+												}
+										}
+
 										else -> {}
 								}
 						}
 				}
 		}
 
-		override fun clearPaging () {
+		private fun provideSetting() {
+				viewModelScope.launch {
+						database.SettingDao().getLanguageSettingList().collectLatest { list ->
+								if (list.isNotEmpty()) {
+										activeSection.value = list.first().activeSettingSection
+										settingList = list.first().settingList.list.toMutableStateList()
+								}
+						}
+				}
+		}
+
+		override fun clearPaging() {
 				newsMutableList.clear()
 				nextPage.value = ""
 				newsListScrollState.intValue = 0

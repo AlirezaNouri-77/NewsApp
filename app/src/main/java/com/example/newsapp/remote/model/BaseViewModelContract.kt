@@ -8,7 +8,7 @@ interface BaseViewModelContract :
 				data object Loading : BaseState()
 				data class Success(var data: Any) : BaseState()
 				data class Error(var message: String) : BaseState()
-				data object Empty : BaseState()
+				data class Empty(var message: String) : BaseState()
 		}
 
 		sealed class BaseEffect {
@@ -19,7 +19,9 @@ interface BaseViewModelContract :
 		sealed class BaseEvent {
 				data class GetData(var userInput: String = "" , var page:String = "") : BaseEvent()
 				data class InsertDataToDb(var article: Article) : BaseEvent()
+				data object InsertDataToSettingDb : BaseEvent()
 				data class DeleteDataToDb(var articleID: String) : BaseEvent()
+				data class UpdateReadState(var articleID: String) : BaseEvent()
 				data object DeleteAllDb : BaseEvent()
 		}
 
