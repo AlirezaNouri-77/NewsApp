@@ -18,5 +18,6 @@ Obtain an API key from newsapp.io.
 Insert your API key to following the path: com/example/newsapp/constant/constant.kt
 
 ## Demo
+video size 7.03 MB
 https://github.com/AlirezaNouri-77/NewsApp/assets/71293106/78bbcef8-a7cf-4530-bc01-ab0b2acc3d8d
 
