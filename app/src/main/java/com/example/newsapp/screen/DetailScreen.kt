@@ -47,7 +47,7 @@ fun DetailScreen(
 		backClick: () -> Unit,
 		content: String,
 		title: String,
-		imageurl: String,
+		imageurl: String?,
 		pubDate: String,
 		articleId: String,
 		link: String,
@@ -105,7 +105,7 @@ fun DetailScreen(
 																						description = description,
 																						pubDate = pubDate,
 																						content = content,
-																						imageuri = "",
+																						source_id = source,
 																						image_url = imageurl,
 																						link = link,
 																				)
@@ -138,7 +138,7 @@ fun DetailScreen(
 				}
 
 				item {
-						if (imageurl.isNotBlank()) {
+						if (!imageurl.isNullOrEmpty()) {
 								AsyncImage(
 										model = imageurl,
 										contentDescription = "",

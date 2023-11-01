@@ -85,6 +85,7 @@ fun BottomSheetSetting(
 										Button(
 												onClick = {
 														newsViewModel.setBaseEvent(BaseViewModelContract.BaseEvent.InsertDataToSettingDb)
+														newsViewModel.clearPaging()
 														settingIsChange = true
 												},
 												colors = ButtonDefaults.buttonColors(

@@ -103,7 +103,7 @@ fun NewsNavigation(
 				) { navbackstack ->
 						DetailScreen(
 								localViewModel = localViewModel,
-								content = navbackstack.arguments?.getString("content")!!.decodeStringNavigation(),
+								content = navbackstack.arguments?.getString("content")?.decodeStringNavigation() ?: "",
 								title = navbackstack.arguments?.getString("title").toString(),
 								imageurl = navbackstack.arguments?.getString("imageurl")?.decodeStringNavigation() ?: "",
 								pubDate = navbackstack.arguments?.getString("pubDate").toString(),

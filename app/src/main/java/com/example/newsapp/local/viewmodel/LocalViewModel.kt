@@ -105,6 +105,25 @@ class LocalViewModel(
 				}
 		}
 
+
+		override fun insertItem(article: Article) {
+				viewModelScope.launch {
+						onIO {
+								articleIdList.add(article.article_id)
+								database.NewsDao().insertNews(entityMapper.articleToRoomEntity(article))
+						}
+				}
+		}
+
+		override fun deleteItem(articleID: String) {
+				viewModelScope.launch {
+						onIO {
+								articleIdList.remove(articleID)
+								database.NewsDao().deleteNews(articleID = articleID)
+						}
+				}
+		}
+
 		override fun deleteAllItem() {
 				viewModelScope.launch {
 						onIO {
@@ -122,25 +141,6 @@ class LocalViewModel(
 		override fun setBaseEffects(newsEffect: BaseViewModelContract.BaseEffect) {
 				viewModelScope.launch {
 						_baseEffect.emit(newsEffect)
-				}
-		}
-
-
-		override fun insertItem(article: Article) {
-				viewModelScope.launch {
-						onIO {
-								articleIdList.add(article.article_id)
-								database.NewsDao().insertNews(entityMapper.articleToRoomEntity(article))
-						}
-				}
-		}
-
-		override fun deleteItem(articleID: String) {
-				viewModelScope.launch {
-						onIO {
-								articleIdList.remove(articleID)
-								database.NewsDao().deleteNews(articleID = articleID)
-						}
 				}
 		}
 

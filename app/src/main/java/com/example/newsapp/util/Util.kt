@@ -99,12 +99,12 @@ fun LazyListState.isBottomList(): State<Boolean> {
 
 fun NavController.navToDetailScreen(data: Article) {
 		val content = data.content.encodeStringNavigation()
-		val imageUrl = data.image_url?.encodeStringNavigation()
+		val imageUrl = if (!data.image_url.isNullOrEmpty()) data.image_url.encodeStringNavigation() else null
 		val title = data.title
 		val pubDate = data.pubDate
 		val articleId = data.article_id
 		val link = data.link.encodeStringNavigation()
-		val description = data.description
+		val description = data.description?.encodeStringNavigation()
 		val source = data.source_id
 		this.navigate(
 				"DetailScreen/${content}/${imageUrl}/${title}/${pubDate}/${articleId}/${link}/${description}/${source}"

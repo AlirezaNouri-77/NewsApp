@@ -1,5 +1,6 @@
 package com.example.newsapp.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,9 +38,9 @@ fun BookmarkScreen(
 						val data = stateLocal.data as List<Article>
 						LazyColumn(modifier = Modifier.fillMaxSize()) {
 								items(items = data) {
-
 										NewsListItem(
 												data = it, clickOnItem = { articleClicked ->
+														Log.d("TAG2352352", "BookmarkScreen: " + articleClicked.image_url)
 														navController.navToDetailScreen(data = articleClicked)
 												}
 										)
