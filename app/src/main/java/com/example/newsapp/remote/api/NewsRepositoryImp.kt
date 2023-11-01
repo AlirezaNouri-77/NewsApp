@@ -5,14 +5,17 @@ import com.example.newsapp.remote.model.NewsModel
 import kotlinx.coroutines.flow.Flow
 
 interface NewsRepositoryImp {
-		suspend fun getNews(
+		fun getNews(
 				category: String,
-				settingQuery:String,
-				settingCategory:String,
-				page: String,
+				settingQuery: String,
+				settingCategory: String,
+				nextPage: String,
 		): Flow<BaseViewModelContract.BaseState>
 
-		suspend fun getNewsSearch(userSearch: String): Flow<BaseViewModelContract.BaseState>
+		fun getNewsSearch(
+				userSearch: String,
+				nextPage: String,
+		): Flow<BaseViewModelContract.BaseState>
 
 }
 

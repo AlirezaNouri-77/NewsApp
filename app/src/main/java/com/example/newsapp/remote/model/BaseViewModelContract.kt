@@ -12,16 +12,17 @@ interface BaseViewModelContract :
 		}
 
 		sealed class BaseEffect {
-				data class EventError (var message : String) : BaseEvent()
+				data class EventError(var message: String) : BaseEvent()
 
 		}
 
 		sealed class BaseEvent {
-				data class GetData(var userInput: String = "" , var page:String = "") : BaseEvent()
+				data class GetData(var userInput: String = "", var page: String = "") : BaseEvent()
 				data class InsertDataToDb(var article: Article) : BaseEvent()
 				data object InsertDataToSettingDb : BaseEvent()
 				data class DeleteDataToDb(var articleID: String) : BaseEvent()
 				data class UpdateReadState(var articleID: String) : BaseEvent()
+				data object GetArticleId : BaseEvent()
 				data object DeleteAllDb : BaseEvent()
 		}
 

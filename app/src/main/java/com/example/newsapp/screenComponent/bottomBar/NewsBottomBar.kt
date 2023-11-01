@@ -1,11 +1,13 @@
-package com.example.newsapp.screenComponent
+package com.example.newsapp.screenComponent.bottomBar
 
+import NewsAppTheme
 import androidx.compose.foundation.Image
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -15,10 +17,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.newsapp.R
 import com.example.newsapp.navigation.NavigationRoute
-import com.example.newsapp.ui.theme.NewsAppTheme
 
 @Composable
-fun NewsBottomNavigation(
+fun NewsBottomBar(
 		navController: NavHostController,
 ) {
 
@@ -31,17 +32,25 @@ fun NewsBottomNavigation(
 		val current = navController.currentBackStackEntry?.destination?.route
 
 		NavigationBar(
-				containerColor = Color.Transparent,
-				contentColor = Color.Transparent,
-				tonalElevation = 0.dp
+				containerColor = MaterialTheme.colorScheme.background,
+				contentColor = MaterialTheme.colorScheme.secondaryContainer,
+				tonalElevation = 0.dp,
 		) {
 				bottomListItem.forEach {
 						NavigationBarItem(
 								selected = current == it.route.route,
 								onClick = {
-										navController.navigate(it.route.route)
+										if (current!=it.route.route){
+												navController.navigate(it.route.route)
+										}
 								},
-								icon = { Image(painter = painterResource(id = it.icon), contentDescription = "") },
+								icon = {
+										Image(
+												painter = painterResource(id = it.icon),
+												contentDescription = "",
+												colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.primary)
+										)
+								},
 								label = {
 										Text(
 												text = it.title,
@@ -84,6 +93,6 @@ sealed class BottomNavigationSealed(
 @Composable
 fun PreviewNewsBottomNavigation() {
 		NewsAppTheme {
-				NewsBottomNavigation(rememberNavController())
+				NewsBottomBar(rememberNavController())
 		}
 }

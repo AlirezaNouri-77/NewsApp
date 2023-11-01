@@ -1,39 +1,33 @@
 package com.example.newsapp.screen
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.newsapp.R
 import com.example.newsapp.local.viewmodel.LocalViewModel
-import com.example.newsapp.navigation.encodeStringNavigation
 import com.example.newsapp.remote.model.BaseViewModelContract
 import com.example.newsapp.remote.viewmodel.NewsViewModel
+import com.example.newsapp.remote.viewmodel.UiPagingState
 import com.example.newsapp.screenComponent.ChipsCategory
+import com.example.newsapp.screenComponent.LoadingItemFail
+import com.example.newsapp.screenComponent.LoadingPagingItem
 import com.example.newsapp.screenComponent.LoadingPagingItemFail
-import com.example.newsapp.screenComponent.LoadingShimmer
+import com.example.newsapp.screenComponent.LoadingScreenShimmer
 import com.example.newsapp.screenComponent.NewsListItem
 import com.example.newsapp.util.isBottomList
+import com.example.newsapp.util.navToDetailScreen
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
@@ -46,30 +40,25 @@ fun NewsScreen(
 		localViewModel: LocalViewModel,
 ) {
 
-		val stateListLazy = rememberLazyListState()
-		val newsStateFlow = newsViewModel.baseState.collectAsStateWithLifecycle().value
+		val listState = rememberLazyListState()
 
 		LaunchedEffect(key1 = Unit, block = {
-				stateListLazy.scrollToItem(newsViewModel.newsListScrollState.intValue)
+				listState.scrollToItem(newsViewModel.newsListScrollState.intValue)
 		})
 
-		LaunchedEffect(key1 = Unit, block = {
-				localViewModel.getAllArticleId()
-		})
-
-		LaunchedEffect(key1 = stateListLazy) {
+		LaunchedEffect(key1 = listState) {
 				snapshotFlow {
-						stateListLazy.firstVisibleItemIndex
+						listState.firstVisibleItemIndex
 				}.debounce(700L).collectLatest { newsViewModel.newsListScrollState.intValue = it }
 		}
 
-		if (stateListLazy.isBottomList().value && newsViewModel.canPaging.value) {
+		if (listState.isBottomList().value && newsViewModel.canPaging && newsViewModel.UiState.value == UiPagingState.Idle) {
 				newsViewModel.setBaseEvent(
 						BaseViewModelContract.BaseEvent.GetData()
 				)
 		}
 
-		LazyColumn(state = stateListLazy, modifier = Modifier.fillMaxSize()) {
+		LazyColumn(state = listState) {
 				stickyHeader {
 						ChipsCategory(
 								newsViewModel = newsViewModel,
@@ -84,92 +73,77 @@ fun NewsScreen(
 						)
 				}
 
-				items(
+				itemsIndexed(
 						items = newsViewModel.newsMutableList,
-						key = { it.article_id },
-				) {
+						key = { index, item -> item.article_id }
+				) { index, item ->
 						NewsListItem(
-								listData = it,
+								data = item,
 								clickOnItem = { articleClicked ->
-										val content = articleClicked.content.encodeStringNavigation()
-										val imageUrl = articleClicked.image_url?.encodeStringNavigation()
-										val title = articleClicked.title
-										val pubDate = articleClicked.pubDate
-										val articleId = articleClicked.article_id
-										val link = articleClicked.link.encodeStringNavigation()
-										val description = articleClicked.description
-										navController.navigate(
-												"DetailScreen/${content}/${imageUrl}/${title}/${pubDate}/${articleId}/${link}/${description}"
-										)
+										newsViewModel.newsListScrollState.intValue = index
+										navController.navToDetailScreen(data = articleClicked)
 								},
-								isBookmarked = localViewModel.articleIdList.contains(it.article_id),
+								isBookmarked = localViewModel.articleIdList.contains(item.article_id),
 								showBookmarkIcon = true,
+						)
+						Divider(
+								thickness = 1.dp,
+								color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
+								modifier = Modifier.padding(5.dp),
 						)
 				}
 
-				item {
-						when (newsStateFlow) {
-								is BaseViewModelContract.BaseState.Loading -> {
-										if (newsViewModel.newsMutableList.size == 0) {
-												LoadingShimmer()
-										}
+				item(
+						key = newsViewModel.UiState.value
+				) {
+						when (newsViewModel.UiState.value) {
+								UiPagingState.Loading -> {
+										LoadingScreenShimmer(modifier = Modifier.fillParentMaxSize())
 								}
 
-								is BaseViewModelContract.BaseState.Empty -> {
-										Text(text = newsStateFlow.message)
+								UiPagingState.PagingLoading -> {
+										LoadingPagingItem()
 								}
 
-								is BaseViewModelContract.BaseState.Error -> {
-										if (newsViewModel.newsMutableList.size == 0) {
-												LoadingItemFail {
+								//todo enum
+								UiPagingState.Empty -> {
+										LoadingItemFail(
+												modifier = Modifier.fillParentMaxSize(),
+												clickOnTryAgain = {
 														newsViewModel.setBaseEvent(
 																BaseViewModelContract.BaseEvent.GetData()
 														)
-												}
-										} else {
-												LoadingPagingItemFail(
-														onClickTryAgain = {
-																newsViewModel.setBaseEvent(
-																		BaseViewModelContract.BaseEvent.GetData()
-																)
-														},
-												)
-										}
+												},
+												massageText = "Nothing found please change your setting or category",
+												iconInt = R.drawable.nothing,
+										)
+								}
+
+								UiPagingState.Error -> {
+										LoadingItemFail(
+												modifier = Modifier.fillParentMaxSize(),
+												clickOnTryAgain = {
+														newsViewModel.setBaseEvent(
+																BaseViewModelContract.BaseEvent.GetData()
+														)
+												},
+												massageText = "Failed to get news please check your internet connection or try later",
+												iconInt = R.drawable.nowifi,
+										)
+								}
+
+								UiPagingState.PagingError -> {
+										LoadingPagingItemFail(
+												onClickTryAgain = {
+														newsViewModel.setBaseEvent(
+																BaseViewModelContract.BaseEvent.GetData()
+														)
+												},
+										)
 								}
 
 								else -> {}
 						}
-				}
-		}
-}
-
-
-@Composable
-fun LoadingItemFail(
-		clickOnTryAgain: () -> Unit,
-) {
-		Column(
-				modifier = Modifier.fillMaxSize(),
-				verticalArrangement = Arrangement.Center,
-				horizontalAlignment = Alignment.CenterHorizontally,
-		) {
-				Image(
-						painter = painterResource(id = R.drawable.warning),
-						contentDescription = "",
-						modifier = Modifier.aspectRatio(2f)
-				)
-				Text(
-						text = "Failed to get news please check your internet connection or try later",
-						fontSize = 16.sp,
-						fontWeight = FontWeight.SemiBold,
-				)
-				Spacer(modifier = Modifier.height(5.dp))
-				Button(
-						onClick = {
-								clickOnTryAgain.invoke()
-						},
-				) {
-						Text(text = "Try Again")
 				}
 		}
 }

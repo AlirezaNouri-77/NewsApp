@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -20,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,17 +51,26 @@ fun SearchTopBar(
 		}
 
 		Column {
-				TopAppBar(title = {
-						Text(
-								text = "Search",
-								fontWeight = FontWeight.Bold,
-								fontSize = 26.sp,
-								textAlign = TextAlign.Start,
-						)
-				})
+				TopAppBar(
+						title = {
+								Text(
+										text = "Search",
+										style = MaterialTheme.typography.titleLarge,
+								)
+						},
+						colors = TopAppBarDefaults.topAppBarColors(
+								containerColor = MaterialTheme.colorScheme.background,
+								titleContentColor = MaterialTheme.colorScheme.onBackground,
+								actionIconContentColor = MaterialTheme.colorScheme.onBackground
+						),
+				)
 				TopAppBar(
 						title = {},
-						colors = TopAppBarDefaults.smallTopAppBarColors(),
+						colors = TopAppBarDefaults.topAppBarColors(
+								containerColor = MaterialTheme.colorScheme.background,
+								titleContentColor = MaterialTheme.colorScheme.primary,
+								actionIconContentColor = MaterialTheme.colorScheme.onBackground
+						),
 						actions = {
 								OutlinedTextField(
 										value = textFiledValue,
@@ -67,20 +78,21 @@ fun SearchTopBar(
 										modifier = Modifier
 												.fillMaxWidth()
 												.padding(horizontal = 5.dp, vertical = 2.dp),
-										placeholder = { Text(text = "something like Tech, Android, USA ...") },
+										placeholder = { Text(text = "Enter your subject") },
 										singleLine = false,
 										colors = TextFieldDefaults.colors(
-												focusedTextColor = Color.Black,
-												focusedPlaceholderColor = Color.Black.copy(alpha = 0.5f),
-												disabledIndicatorColor = Color.Black.copy(alpha = 0.5f),
-												unfocusedIndicatorColor = Color.Black.copy(alpha = 0.5f),
-												focusedIndicatorColor = Color.Black,
-												unfocusedContainerColor = Color.Transparent,
+												focusedTextColor = MaterialTheme.colorScheme.onBackground,
+												focusedPlaceholderColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+												disabledIndicatorColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+												unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+												focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+												unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
 										),
 										leadingIcon = {
 												Image(
 														painter = painterResource(id = R.drawable.iconssearch),
-														contentDescription = ""
+														contentDescription = "",
+														colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
 												)
 										},
 										trailingIcon = {
@@ -92,7 +104,8 @@ fun SearchTopBar(
 																contentDescription = "",
 																modifier = Modifier.clickable {
 																		textFiledValue = ""
-																}
+																},
+																colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
 														)
 												}
 										}

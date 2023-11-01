@@ -1,39 +1,36 @@
 package com.example.newsapp.remote.repository
 
 import android.util.Log
-import com.example.newsapp.constant.constant
-import com.example.newsapp.constant.constant.API_KEY
 import com.example.newsapp.constant.constant.API_KEY2
 import com.example.newsapp.constant.constant.BASE_URL
 import com.example.newsapp.remote.api.NewsRepositoryImp
 import com.example.newsapp.remote.model.BaseViewModelContract
 import com.example.newsapp.remote.model.NewsModel
+import com.example.newsapp.util.CheckInternet
 import com.example.newsapp.util.NoInternet
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.request.get
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.appendPathSegments
 import io.ktor.http.isSuccess
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.cancel
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import javax.net.ssl.HttpsURLConnection
+import java.io.InterruptedIOException
 
 class NewsRepository(
-		private var ktorClient: HttpClient
+		private var ktorClient: HttpClient,
 ) : NewsRepositoryImp {
-		override suspend fun getNews(
+		override fun getNews(
 				category: String,
-				settingQuery:String,
-				settingCategory:String,
-				page: String,
+				settingQuery: String,
+				settingCategory: String,
+				nextPage: String,
 		): Flow<BaseViewModelContract.BaseState> {
-
 				return flow {
 						this.emit(BaseViewModelContract.BaseState.Loading)
 						try {
@@ -45,8 +42,8 @@ class NewsRepository(
 														appendPathSegments("api", "1", "news")
 														parameters.append("category", category)
 														parameters.append(settingCategory, settingQuery)
-														if (page.isNotEmpty()) {
-																parameters.append("page", page)
+														if (nextPage.isNotEmpty()) {
+																parameters.append("page", nextPage)
 														}
 														parameters.append("full_content", "1")
 														parameters.append("apiKey", API_KEY2)
@@ -54,52 +51,76 @@ class NewsRepository(
 										}
 								Log.d("URL", "getNews: " + response.body())
 								val data = response.body() as NewsModel
-								if (data.totalResults != 0){
+								if (data.totalResults != 0) {
 										this.emit(BaseViewModelContract.BaseState.Success(data = response.body() as NewsModel))
 								} else {
-										this.emit(BaseViewModelContract.BaseState.Empty(
-												message = "Nothing found change your settings and try again"
-										))
+										this.emit(
+												BaseViewModelContract.BaseState.Empty(
+														message = "Nothing found change your settings and try again"
+												)
+										)
 								}
-
 						} catch (e: NoInternet) {
-								Log.d("TAG3242", "intercept: " + "ss")
 								this.emit(
 										BaseViewModelContract.BaseState.Error(
 												message = e.toString()
 										)
 								)
-						} catch (e: SocketTimeoutException) {
+						} catch (e: InterruptedIOException) {
 								this.emit(
 										BaseViewModelContract.BaseState.Error(
 												message = e.toString()
 										)
 								)
 						}
-				}.flowOn(Dispatchers.IO)
+				}
 		}
 
-		override suspend fun getNewsSearch(userSearch: String): Flow<BaseViewModelContract.BaseState> {
+		override fun getNewsSearch(
+				userSearch: String,
+				nextPage: String,
+		): Flow<BaseViewModelContract.BaseState> {
 				return flow {
-						//emit(BaseViewModelContract.BaseState.Loading)
-						val response = ktorClient.get {
-								url {
-										protocol = URLProtocol.HTTPS
-										host = BASE_URL
-										appendPathSegments("api", "1", "news")
-										parameters.append("q", userSearch)
-										parameters.append("language", "en")
-										parameters.append("apiKey", API_KEY2)
+						emit(BaseViewModelContract.BaseState.Loading)
+						try {
+								val response = ktorClient.get {
+										url {
+												protocol = URLProtocol.HTTPS
+												host = BASE_URL
+												appendPathSegments("api", "1", "news")
+												parameters.append("q", userSearch)
+												if (nextPage.isNotEmpty()) {
+														parameters.append("page", nextPage)
+												}
+												parameters.append("language", "en")
+												parameters.append("apiKey", API_KEY2)
+										}
 								}
+								Log.d("URL", "getSearchNews: " + response.body())
+								val data = response.body() as NewsModel
+								if (data.totalResults != 0) {
+										this.emit(BaseViewModelContract.BaseState.Success(data = response.body() as NewsModel))
+								} else {
+										this.emit(
+												BaseViewModelContract.BaseState.Empty(
+														message = "Nothing found change your settings and try again"
+												)
+										)
+								}
+						} catch (e: NoInternet) {
+								this.emit(
+										BaseViewModelContract.BaseState.Error(
+												message = e.toString()
+										)
+								)
+						} catch (e: InterruptedIOException) {
+								this.emit(
+										BaseViewModelContract.BaseState.Error(
+												message = e.toString()
+										)
+								)
 						}
 
-						Log.d("URL", "getNewsSearch: " + response.body())
-
-						if (response.status.isSuccess()) {
-								emit(BaseViewModelContract.BaseState.Success(response.body() as NewsModel))
-						} else {
-								//emit(BaseViewModelContract.BaseState.Error(BaseViewModelContract.BaseEvent.EventError))
-						}
 				}
 		}
 }

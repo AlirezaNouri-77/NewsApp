@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.newsapp.R
 import com.example.newsapp.local.viewmodel.LocalViewModel
+import com.example.newsapp.navigation.decodeStringNavigation
 import com.example.newsapp.navigation.encodeStringNavigation
 import com.example.newsapp.remote.model.Article
 import com.example.newsapp.remote.model.BaseViewModelContract
@@ -41,6 +44,7 @@ import com.example.newsapp.remote.model.BaseViewModelContract
 @Composable
 fun DetailScreen(
 		localViewModel: LocalViewModel,
+		backClick: () -> Unit,
 		content: String,
 		title: String,
 		imageurl: String,
@@ -48,6 +52,7 @@ fun DetailScreen(
 		articleId: String,
 		link: String,
 		description: String,
+		source:String,
 ) {
 
 		val isSavedInDb = localViewModel.articleIdList.contains(articleId)
@@ -71,12 +76,12 @@ fun DetailScreen(
 						Row(
 								modifier = Modifier
 										.fillMaxWidth()
-										.background(Color.White),
+										.background(MaterialTheme.colorScheme.background),
 								horizontalArrangement = Arrangement.SpaceBetween,
 								verticalAlignment = Alignment.CenterVertically,
 						) {
 								Button(
-										onClick = { /*TODO*/ },
+										onClick = { backClick.invoke() },
 										colors = ButtonDefaults.buttonColors(
 												containerColor = Color.Transparent,
 										),
@@ -84,7 +89,8 @@ fun DetailScreen(
 										Image(
 												painter = painterResource(id = R.drawable.iconback),
 												contentDescription = "",
-												modifier = Modifier.size(25.dp),
+												modifier = Modifier.size(20.dp),
+												colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
 										)
 								}
 								Row {
@@ -114,15 +120,17 @@ fun DetailScreen(
 																)
 																imageState = R.drawable.iconbookmark
 														}
+														localViewModel.setBaseEvent(BaseViewModelContract.BaseEvent.GetArticleId)
 												},
 												colors = ButtonDefaults.buttonColors(
 														containerColor = Color.Transparent,
-												)
+												),
 										) {
 												Image(
 														painter = painterResource(id = imageState),
 														contentDescription = "",
-														modifier = Modifier.size(25.dp),
+														modifier = Modifier.size(20.dp),
+														colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.onBackground)
 												)
 										}
 								}
@@ -136,30 +144,31 @@ fun DetailScreen(
 										contentDescription = "",
 										modifier = Modifier
 												.fillMaxWidth()
-												.height(360.dp),
+												.height(300.dp),
 										alignment = Alignment.TopCenter,
-										contentScale = ContentScale.FillHeight,
+										contentScale = ContentScale.FillBounds,
 								)
 						}
 				}
 
 				item {
 						Text(
-								text = pubDate.encodeStringNavigation(),
-								fontWeight = FontWeight.Medium,
-								fontSize = 14.sp,
-								modifier = Modifier.padding(horizontal = 5.dp)
-						)
-						Spacer(
-								modifier = Modifier
-										.height(4.dp),
+								text = title,
+								textAlign = TextAlign.Start,
+								style = MaterialTheme.typography.titleLarge,
+								modifier = Modifier.padding(horizontal = 5.dp),
 						)
 						Text(
-								text = title,
-								fontWeight = FontWeight.SemiBold,
-								fontSize = 20.sp,
-								textAlign = TextAlign.Start,
-								modifier = Modifier.padding(horizontal = 5.dp),
+								text = source,
+								style = MaterialTheme.typography.titleMedium,
+								fontSize = 14.sp,
+								modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+						)
+						Text(
+								text = pubDate,
+								fontWeight = FontWeight.Medium,
+								fontSize = 14.sp,
+								modifier = Modifier.padding(horizontal = 5.dp, vertical = 4.dp)
 						)
 						Divider(
 								thickness = 1.dp,
@@ -167,12 +176,9 @@ fun DetailScreen(
 								modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
 						)
 						Text(
-								text = content ,
-								fontSize = 14.sp,
-								fontWeight = FontWeight.Medium,
-								textAlign = TextAlign.Start,
-								lineHeight = 24.sp,
-								modifier = Modifier.padding(horizontal = 5.dp, vertical = 7.dp),
+								text = content,
+								style = MaterialTheme.typography.bodyMedium,
+								modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
 						)
 				}
 

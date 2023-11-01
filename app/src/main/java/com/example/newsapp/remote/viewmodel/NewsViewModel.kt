@@ -11,7 +11,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.newsapp.local.database.NewsRoomDatabase
 import com.example.newsapp.local.model.ActiveSettingSectionEnum
 import com.example.newsapp.local.model.SettingDataClass
-import com.example.newsapp.local.model.SettingEntity
 import com.example.newsapp.local.model.SettingListDataClass
 import com.example.newsapp.remote.api.NewsViewModelImp
 import com.example.newsapp.remote.model.Article
@@ -29,10 +28,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.Locale
 
 class NewsViewModel(
@@ -42,8 +39,9 @@ class NewsViewModel(
 
 		var nextPage = mutableStateOf("")
 		var newsMutableList: MutableList<Article> = mutableListOf()
-		var canPaging = mutableStateOf(true)
-		var isPaging = mutableStateOf(false)
+		var canPaging = true
+
+		var UiState = mutableStateOf(UiPagingState.Idle)
 
 		var newsListScrollState = mutableIntStateOf(0)
 		var newsCategoryState = mutableIntStateOf(0)
@@ -73,17 +71,9 @@ class NewsViewModel(
 				set(value) {}
 
 		init {
-				viewModelScope.launch {
-						provideSetting()
-						handleEffects()
-						handleState()
-						newsRepository.getNews(
-								category = newsCategory.value,
-								page = nextPage.value,
-								settingCategory = activeSection.value.name.lowercase(Locale.getDefault()),
-								settingQuery = settingList.convertToString(),
-						)
-				}
+				handleEffects()
+				handleState()
+				provideSetting()
 		}
 
 		override fun handleState() {
@@ -99,27 +89,23 @@ class NewsViewModel(
 														newsMutableList.addAll(data.results)
 												}
 												nextPage.value = data.nextPage
-												canPaging.value = true
-												isPaging.value = false
-												_baseState.value = BaseViewModelContract.BaseState.Idle
+												canPaging = true
+												UiState.value = UiPagingState.Idle
 										}
-
 										is BaseViewModelContract.BaseState.Loading -> {
-												canPaging.value = false
-												isPaging.value = true
+												UiState.value =
+														if (newsMutableList.size == 0) UiPagingState.Loading else UiPagingState.PagingLoading
+												canPaging = false
 										}
-
 										is BaseViewModelContract.BaseState.Empty -> {
-												canPaging.value = false
-												isPaging.value = false
+												UiState.value = UiPagingState.Empty
+												canPaging = false
 										}
-
 										is BaseViewModelContract.BaseState.Error -> {
-												_baseState.emit(BaseViewModelContract.BaseState.Error(""))
-												canPaging.value = false
-												isPaging.value = false
+												UiState.value =
+														if (newsMutableList.size == 0) UiPagingState.Error else UiPagingState.PagingError
+												canPaging = false
 										}
-
 										else -> {}
 								}
 						}
@@ -133,10 +119,10 @@ class NewsViewModel(
 										is BaseViewModelContract.BaseEvent.GetData -> {
 												newsRepository.getNews(
 														category = newsCategory.value,
-														page = nextPage.value,
+														nextPage = nextPage.value,
 														settingCategory = activeSection.value.name.lowercase(Locale.getDefault()),
 														settingQuery = settingList.convertToString(),
-												).distinctUntilChanged().collectLatest {
+												).collectLatest {
 														_baseState.value = it
 												}
 										}
@@ -160,11 +146,10 @@ class NewsViewModel(
 
 		private fun provideSetting() {
 				viewModelScope.launch {
-						database.SettingDao().getLanguageSettingList().collectLatest { list ->
-								if (list.isNotEmpty()) {
-										activeSection.value = list.first().activeSettingSection
-										settingList = list.first().settingList.list.toMutableStateList()
-								}
+						database.SettingDao().getLanguageSettingList().collect { list ->
+								activeSection.value = list.first().activeSettingSection
+								settingList = list.first().settingList.list.toMutableStateList()
+								setBaseEvent(BaseViewModelContract.BaseEvent.GetData())
 						}
 				}
 		}
@@ -187,5 +172,8 @@ class NewsViewModel(
 				}
 		}
 
+}
 
+enum class UiPagingState {
+		Loading, PagingLoading, Error, PagingError, Idle, Empty
 }

@@ -2,6 +2,7 @@ package com.example.newsapp.screen
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -18,7 +19,7 @@ import com.example.newsapp.remote.viewmodel.NewsSearchViewModel
 import com.example.newsapp.remote.viewmodel.NewsViewModel
 import com.example.newsapp.screenComponent.topBar.BookmarkTopBar
 import com.example.newsapp.screenComponent.BottomSheetSetting
-import com.example.newsapp.screenComponent.NewsBottomNavigation
+import com.example.newsapp.screenComponent.bottomBar.NewsBottomBar
 import com.example.newsapp.screenComponent.topBar.NewsTopBar
 import com.example.newsapp.screenComponent.topBar.SearchTopBar
 
@@ -27,12 +28,14 @@ import com.example.newsapp.screenComponent.topBar.SearchTopBar
 fun MainScreen(
 		newsViewModel: NewsViewModel,
 		localViewModel: LocalViewModel,
-		newsSearchViewModel: NewsSearchViewModel,) {
+		newsSearchViewModel: NewsSearchViewModel,
+		) {
 
 		val navHostController = rememberNavController()
 		val showSettingBottomSheet = remember {
 				mutableStateOf(false)
 		}
+
 		val bottomSheetState = rememberModalBottomSheetState()
 
 		navHostController.currentBackStackEntryFlow.collectAsState(initial = NavigationRoute.NewsScreen).value
@@ -42,7 +45,6 @@ fun MainScreen(
 				BottomSheetSetting(
 						newsViewModel = newsViewModel,
 						onDismiss = {
-
 								showSettingBottomSheet.value = false
 						},
 						bottomSheetState = bottomSheetState
@@ -51,11 +53,11 @@ fun MainScreen(
 
 		Scaffold(
 				modifier = Modifier.fillMaxSize(),
+				containerColor = MaterialTheme.colorScheme.background,
 				topBar = {
 						when (navHostController.currentDestination?.route) {
 								NavigationRoute.NewsScreen.route -> {
 										NewsTopBar(
-												newsViewModel = newsViewModel,
 												clickOnSetting = {
 														showSettingBottomSheet.value = true
 												}
@@ -65,6 +67,8 @@ fun MainScreen(
 								NavigationRoute.SearchScreen.route -> {
 										SearchTopBar(
 												onSearch = {
+														newsSearchViewModel.userQuery.value = it
+														newsSearchViewModel.clearPaging()
 														newsSearchViewModel.setBaseEvent(
 																BaseViewModelContract.BaseEvent.GetData(
 																		userInput = it,
@@ -87,7 +91,7 @@ fun MainScreen(
 				},
 				bottomBar = {
 						if (currentDestination != NavigationRoute.DetailScreen.route) {
-								NewsBottomNavigation(navController = navHostController)
+								NewsBottomBar(navController = navHostController)
 						}
 				}
 		) { padding ->

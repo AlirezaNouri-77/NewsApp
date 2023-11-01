@@ -52,6 +52,8 @@ android {
 
 dependencies {
 
+    val roomVersion = "2.6.0"
+
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.0")
@@ -69,6 +71,8 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation ("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
@@ -81,10 +85,10 @@ dependencies {
     implementation("io.ktor:ktor-serialization-gson:2.3.4")
     implementation("io.ktor:ktor-client-okhttp:2.3.4")
 
-    implementation("androidx.room:room-ktx:2.5.2")
-    implementation("androidx.room:room-runtime:2.5.2")
-    annotationProcessor("androidx.room:room-compiler:2.5.2")
-    ksp("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-ktx:$roomVersion")
+    implementation("androidx.room:room-runtime:$roomVersion")
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
 
     implementation("io.coil-kt:coil-compose:2.4.0")
 

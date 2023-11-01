@@ -8,7 +8,7 @@ import io.ktor.utils.io.errors.IOException
 import okhttp3.Interceptor
 import okhttp3.Response
 
-class InternetConnectionInterceptor (var context: Context) : Interceptor {
+class InternetConnectionInterceptor (private var context: Context) : Interceptor {
 		override fun intercept(chain: Interceptor.Chain): Response {
 				val request = chain.request()
 				if (!CheckInternet.checkNetworkConnection(context)){

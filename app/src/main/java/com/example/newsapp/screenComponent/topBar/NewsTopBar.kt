@@ -12,8 +12,10 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -24,37 +26,27 @@ import com.example.newsapp.remote.viewmodel.NewsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsTopBar(
-		newsViewModel: NewsViewModel,
 		clickOnSetting: () -> Unit = {},
 ) {
-				TopAppBar(title = {
+		TopAppBar(
+				title = {
 						Text(
 								text = "News",
-								fontWeight = FontWeight.Bold,
-								fontSize = 26.sp,
-								textAlign = TextAlign.Start,
+								style = MaterialTheme.typography.titleLarge,
 						)
-				}, actions = {
-
-						AnimatedVisibility(
-								visible = newsViewModel.isPaging.value,
-								enter = fadeIn() + slideInVertically(tween(200), initialOffsetY = { -it * 2 }),
-								exit = slideOutVertically(tween(500), targetOffsetY = { it * 2 }) + fadeOut()
-						) {
-								Text(
-										modifier = Modifier.fillMaxWidth(),
-										textAlign = TextAlign.Center,
-										text = "Loading News",
-										fontSize = 17.sp,
-										fontWeight = FontWeight.SemiBold,
-								)
-						}
-
+				},
+				actions = {
 						IconButton(onClick = { clickOnSetting.invoke() }) {
 								Icon(
 										imageVector = Icons.Default.Settings,
 										contentDescription = "",
 								)
 						}
-				})
+				},
+				colors = TopAppBarDefaults.topAppBarColors(
+						containerColor = MaterialTheme.colorScheme.background,
+						titleContentColor = MaterialTheme.colorScheme.primary,
+						actionIconContentColor = MaterialTheme.colorScheme.onBackground
+				),
+				)
 }

@@ -6,7 +6,8 @@ interface LocalViewModelImp {
 		fun getNewsRoomData()
 		fun insertItem (article: Article)
 		fun deleteItem (articleID: String)
-		fun updateNewsReadState(newsIsRead: Boolean, newsId: String)
+		fun getAllArticleId()
 		fun deleteAllItem ()
+
 		fun handlerEffects()
 }

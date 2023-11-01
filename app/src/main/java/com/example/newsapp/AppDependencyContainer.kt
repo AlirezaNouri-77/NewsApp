@@ -9,6 +9,7 @@ import com.example.newsapp.local.viewmodel.LocalViewModel
 import com.example.newsapp.remote.repository.NewsRepository
 import com.example.newsapp.remote.viewmodel.NewsSearchViewModel
 import com.example.newsapp.remote.viewmodel.NewsViewModel
+import com.example.newsapp.util.CheckInternet
 import com.example.newsapp.util.InternetConnectionInterceptor
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -26,7 +27,9 @@ class AppDependencyContainer(
 		private var newsRoomDataBase = NewsRoomDatabase.getInstance(context)
 
 		private var newsRepository =
-				NewsRepository(ktorClient = KtorInstance.getInstance(context = context)!!)
+				NewsRepository(
+						ktorClient = Ktor.getInstance(context = context)!!,
+				)
 
 		var searchNewsViewModelFactory = object : ViewModelProvider.Factory {
 				override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -54,38 +57,41 @@ class AppDependencyContainer(
 				}
 		}
 
-}
+		object Ktor {
 
-object KtorInstance {
+				@Volatile
+				private var INSTANCE: HttpClient? = null
 
-		@Volatile
-		private var INSTANCE: HttpClient? = null
-
-		fun getInstance(context: Context): HttpClient? {
-				synchronized(this) {
-						var instance = INSTANCE
-						if (instance == null) {
-								instance = HttpClient(io.ktor.client.engine.okhttp.OkHttp) {
-										engine {
-												config {
-														this.addInterceptor(InternetConnectionInterceptor(context = context))
-														this.callTimeout(30, TimeUnit.SECONDS)
-														this.connectTimeout(30, TimeUnit.SECONDS)
+				fun getInstance(context: Context): HttpClient? {
+						synchronized(this) {
+								var instance = INSTANCE
+								if (instance == null) {
+										instance = HttpClient(io.ktor.client.engine.okhttp.OkHttp) {
+												engine {
+														config {
+																this.addInterceptor(InternetConnectionInterceptor(context = context))
+																this.callTimeout(30, TimeUnit.SECONDS)
+																this.connectTimeout(30, TimeUnit.SECONDS)
+														}
+												}
+												install(Logging) {
+														this.logger = Logger.DEFAULT
+														this.level = LogLevel.HEADERS
+												}
+												install(ContentNegotiation) {
+														gson()
 												}
 										}
-										install(Logging) {
-												this.logger = Logger.DEFAULT
-												this.level = LogLevel.HEADERS
-										}
-										install(ContentNegotiation) {
-												gson()
-										}
+										INSTANCE = instance
 								}
-								INSTANCE = instance
 						}
+						return INSTANCE
 				}
-				return INSTANCE
+
 		}
+
 }
+
+
 
 

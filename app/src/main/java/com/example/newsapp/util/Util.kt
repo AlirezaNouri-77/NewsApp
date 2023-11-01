@@ -1,6 +1,5 @@
 package com.example.newsapp.util
 
-import android.util.Log
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -10,22 +9,25 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.referentialEqualityPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
+import androidx.navigation.NavController
 import com.example.newsapp.local.model.SettingDataClass
+import com.example.newsapp.navigation.encodeStringNavigation
+import com.example.newsapp.remote.model.Article
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 inline fun Modifier.noRippleClick(crossinline onClick: () -> Unit): Modifier = composed {
@@ -43,10 +45,10 @@ fun Modifier.shimmerEffect(): Modifier = composed {
 		val transition = rememberInfiniteTransition(label = "")
 
 		val transitionFloat by transition.animateFloat(
-				initialValue = -3f * size.width.toFloat(),
-				targetValue = 3f * size.width.toFloat(),
+				initialValue = 0f,
+				targetValue = size.width.toFloat().times(4f),
 				animationSpec = infiniteRepeatable(
-						tween(durationMillis = 2500, delayMillis = 30),
+						tween(durationMillis = 1200),
 						repeatMode = RepeatMode.Restart,
 				),
 				label = "",
@@ -57,12 +59,12 @@ fun Modifier.shimmerEffect(): Modifier = composed {
 						colors = listOf(
 								Color.LightGray.copy(0.7f),
 								Color.LightGray.copy(0.7f),
-								Color.Black.copy(0.4f),
+								Color.White.copy(0.4f),
 								Color.LightGray.copy(0.7f),
 								Color.LightGray.copy(0.7f),
 						),
-						startX = size.width.toFloat() * -3f,
-						endX = (transitionFloat + size.width.toFloat()) * 3f,
+						startX = 0f,
+						endX = transitionFloat,
 				),
 		).onGloballyPositioned { size = it.size }
 
@@ -73,7 +75,6 @@ suspend inline fun <T> onIO(crossinline action: () -> T): T {
 				action()
 		}
 }
-
 
 fun List<SettingDataClass>.convertToString(): String {
 		val output = StringBuilder()
@@ -86,17 +87,26 @@ fun List<SettingDataClass>.convertToString(): String {
 		return output.toString()
 }
 
+@Composable
 fun LazyListState.isBottomList(): State<Boolean> {
-		return derivedStateOf {
-				val layoutInfo = this.layoutInfo
-				val visibleItemsInfo = layoutInfo.visibleItemsInfo
-				if (layoutInfo.totalItemsCount == 0 || layoutInfo.totalItemsCount == 1) {
-						false
-				} else {
-						val lastVisibleItem = visibleItemsInfo.last()
-						val viewportHeight = layoutInfo.viewportEndOffset + layoutInfo.viewportStartOffset
-						(lastVisibleItem.index == layoutInfo.totalItemsCount.minus(1) &&
-										(lastVisibleItem.offset) + lastVisibleItem.size <= viewportHeight)
+		return remember {
+				derivedStateOf(policy = referentialEqualityPolicy()) {
+						(((this.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+								?: -9) == this.layoutInfo.totalItemsCount.minus(3)))
 				}
 		}
+}
+
+fun NavController.navToDetailScreen(data: Article) {
+		val content = data.content.encodeStringNavigation()
+		val imageUrl = data.image_url?.encodeStringNavigation()
+		val title = data.title
+		val pubDate = data.pubDate
+		val articleId = data.article_id
+		val link = data.link.encodeStringNavigation()
+		val description = data.description
+		val source = data.source_id
+		this.navigate(
+				"DetailScreen/${content}/${imageUrl}/${title}/${pubDate}/${articleId}/${link}/${description}/${source}"
+		)
 }

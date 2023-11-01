@@ -1,11 +1,11 @@
-package com.example.newsapp.util
+package com.example.newsapp.constant
 
 import com.example.newsapp.local.model.ActiveSettingSectionEnum
 import com.example.newsapp.local.model.SettingDataClass
 import com.example.newsapp.local.model.SettingEntity
 import com.example.newsapp.local.model.SettingListDataClass
 
-data object ListUtil {
+data object SettingList {
 		val languageList: List<SettingDataClass> = listOf(
 				SettingDataClass(name = "English", code = "en"),
 				SettingDataClass(name = "Chinese", code = "zh"),
@@ -33,9 +33,18 @@ data object ListUtil {
 
 		val domainList: List<SettingDataClass> = listOf(
 				SettingDataClass(name = "BBC", code = "bbc"),
+				SettingDataClass(name = "GNZ" , code = "gnz"),
+				SettingDataClass(name = "New York Times" , code = "nytimes"),
+				SettingDataClass(name = "Hollywood Life", code = "hollywoodlife"),
+				SettingDataClass(name = "TechRadar", code = "techradar"),
+				SettingDataClass(name = "Digital Trends", code = "digitaltrends"),
+				SettingDataClass(name = "North Wales Pioneer", code = "northwalespioneer"),
+				SettingDataClass(name = "South Wales Guardian", code = "southwalesguardian"),
+				SettingDataClass(name = "Daily Mail Uk", code = "dailymailuk"),
+
 		)
 
-		val PrepopulateItem = SettingEntity(
+		val PrepopulateDatabase = SettingEntity(
 				id = 0,
 				activeSettingSection = ActiveSettingSectionEnum.Language,
 				settingList = SettingListDataClass(

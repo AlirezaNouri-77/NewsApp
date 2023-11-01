@@ -1,10 +1,10 @@
 package com.example.newsapp.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
@@ -20,9 +20,9 @@ import androidx.navigation.navArgument
 import com.example.newsapp.local.viewmodel.LocalViewModel
 import com.example.newsapp.remote.viewmodel.NewsSearchViewModel
 import com.example.newsapp.remote.viewmodel.NewsViewModel
+import com.example.newsapp.screen.BookmarkScreen
 import com.example.newsapp.screen.DetailScreen
 import com.example.newsapp.screen.NewsScreen
-import com.example.newsapp.screen.BookmarkScreen
 import com.example.newsapp.screen.SearchScreen
 import java.util.Base64
 
@@ -38,28 +38,22 @@ fun NewsNavigation(
 		NavHost(
 				navController = navHostController,
 				startDestination = NavigationRoute.NewsScreen.route,
-				modifier = Modifier.padding(padding)
+				modifier = Modifier.padding(padding),
 		) {
 
 				composable(
 						NavigationRoute.NewsScreen.route,
 						enterTransition = {
-								fadeIn(tween(400, easing = LinearOutSlowInEasing), initialAlpha = 0.4f)
+								slideIntoContainer(
+										towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+										animationSpec = tween(600)
+								)
 						},
 						exitTransition = {
-								when (targetState.destination.route) {
-										NavigationRoute.DetailScreen.route -> {
-												fadeOut(tween(100))
-										}
-
-										else -> {
-												slideOutOfContainer(
-														towards = AnimatedContentTransitionScope.SlideDirection.Left,
-														animationSpec = tween(500),
-												)
-										}
-								}
-
+								slideOutOfContainer(
+										towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+										animationSpec = tween(600)
+								)
 						},
 				) {
 						NewsScreen(
@@ -96,6 +90,9 @@ fun NewsNavigation(
 										type = NavType.StringType
 										nullable = true
 								},
+								navArgument(name = "source") {
+										type = NavType.StringType
+								},
 						),
 						enterTransition = {
 								scaleIn(tween(500, easing = FastOutSlowInEasing))
@@ -104,7 +101,6 @@ fun NewsNavigation(
 								scaleOut(tween(500, easing = FastOutSlowInEasing))
 						},
 				) { navbackstack ->
-
 						DetailScreen(
 								localViewModel = localViewModel,
 								content = navbackstack.arguments?.getString("content")!!.decodeStringNavigation(),
@@ -114,17 +110,20 @@ fun NewsNavigation(
 								articleId = navbackstack.arguments?.getString("articleId").toString(),
 								link = navbackstack.arguments?.getString("link")?.decodeStringNavigation() ?: "",
 								description = navbackstack.arguments?.getString("description").toString(),
+								source = navbackstack.arguments?.getString("source").toString(),
+								backClick = {
+										navHostController.popBackStack()
+								}
 						)
-
 				}
 
 				composable(
 						NavigationRoute.BookmarkScreen.route,
 						enterTransition = {
-								fadeIn()
+								EnterTransition.None
 						},
 						exitTransition = {
-								fadeOut()
+								ExitTransition.None
 						},
 				) {
 						BookmarkScreen(
@@ -137,14 +136,14 @@ fun NewsNavigation(
 						NavigationRoute.SearchScreen.route,
 						enterTransition = {
 								slideIntoContainer(
-										towards = AnimatedContentTransitionScope.SlideDirection.Right,
-										animationSpec = tween(500),
+										towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+										animationSpec = tween(600)
 								)
 						},
 						exitTransition = {
 								slideOutOfContainer(
-										towards = AnimatedContentTransitionScope.SlideDirection.Right,
-										animationSpec = tween(500),
+										towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+										animationSpec = tween(600)
 								)
 						},
 				) {
@@ -157,6 +156,7 @@ fun NewsNavigation(
 
 		}
 }
+
 fun String.encodeStringNavigation(): String {
 		return Base64.getUrlEncoder().encodeToString(this.toByteArray())
 }
@@ -170,5 +170,5 @@ sealed class NavigationRoute(var route: String) {
 		data object BookmarkScreen : NavigationRoute("BookmarkScreen")
 		data object SearchScreen : NavigationRoute("SearchScreen")
 		data object DetailScreen :
-				NavigationRoute("DetailScreen/{content}/{imageurl}/{title}/{pubDate}/{articleId}/{link}/{description}")
+				NavigationRoute("DetailScreen/{content}/{imageurl}/{title}/{pubDate}/{articleId}/{link}/{description}/{source}")
 }

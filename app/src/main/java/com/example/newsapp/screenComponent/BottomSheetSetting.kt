@@ -1,6 +1,8 @@
 package com.example.newsapp.screenComponent
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -8,10 +10,12 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
@@ -25,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,9 +37,9 @@ import com.example.newsapp.local.model.ActiveSettingSectionEnum
 import com.example.newsapp.local.model.SettingDataClass
 import com.example.newsapp.remote.model.BaseViewModelContract
 import com.example.newsapp.remote.viewmodel.NewsViewModel
-import com.example.newsapp.util.ListUtil
+import com.example.newsapp.constant.SettingList
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BottomSheetSetting(
 		newsViewModel: NewsViewModel,
@@ -49,69 +54,81 @@ fun BottomSheetSetting(
 		ModalBottomSheet(
 				onDismissRequest = {
 						onDismiss.invoke()
-						if(settingIsChange){
+						if (settingIsChange) {
 								newsViewModel.clearPaging()
 								newsViewModel.setBaseEvent(BaseViewModelContract.BaseEvent.GetData())
 						}
 				},
 				sheetState = bottomSheetState,
+				containerColor = MaterialTheme.colorScheme.background,
 		) {
-				Column(
+				LazyColumn(
 						modifier = Modifier
 								.fillMaxWidth()
 								.padding(10.dp),
 				) {
 
-						Row(
-								modifier = Modifier
-										.fillMaxWidth()
-										.padding(vertical = 10.dp),
-								horizontalArrangement = Arrangement.SpaceBetween,
-								verticalAlignment = Alignment.CenterVertically,
-						) {
-								Text(
-										text = "Setting",
-										modifier = Modifier,
-										fontSize = 34.sp,
-										fontWeight = FontWeight.Bold
-								)
-								Button(
-										onClick = {
-												newsViewModel.setBaseEvent(BaseViewModelContract.BaseEvent.InsertDataToSettingDb)
-												settingIsChange = true
-										},
-										colors = ButtonDefaults.buttonColors(
-												containerColor = Color.Transparent,
-												contentColor = Color.Black,
-										),
+						stickyHeader {
+								Row(
+										modifier = Modifier
+												.fillMaxWidth()
+												.background(Color.Transparent)
+												.padding(vertical = 10.dp),
+										horizontalArrangement = Arrangement.SpaceBetween,
+										verticalAlignment = Alignment.CenterVertically,
 								) {
-										Text(text = "Apply", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+										Text(
+												text = "Setting",
+												style = MaterialTheme.typography.titleLarge,
+												modifier = Modifier.background(Color.Transparent)
+										)
+										Button(
+												onClick = {
+														newsViewModel.setBaseEvent(BaseViewModelContract.BaseEvent.InsertDataToSettingDb)
+														settingIsChange = true
+												},
+												colors = ButtonDefaults.buttonColors(
+														containerColor = Color.Transparent,
+														contentColor = Color.Black,
+												),
+										) {
+												Text(
+														text = "Apply", fontSize = 16.sp,
+														fontWeight = FontWeight.SemiBold,
+														color = MaterialTheme.colorScheme.onBackground,
+														modifier = Modifier.background(Color.Transparent)
+												)
+										}
 								}
 						}
 
-						SettingPicker(
-								settingTitle = ActiveSettingSectionEnum.Language,
-								settingDescription = "get news for specific language",
-								listItem = ListUtil.languageList,
-								settings = newsViewModel.settingList,
-								activeSetting = newsViewModel.activeSection,
-						)
-
-						SettingPicker(
-								settingTitle = ActiveSettingSectionEnum.Country,
-								settingDescription = "get news for specific Country",
-								listItem = ListUtil.countryList,
-								settings = newsViewModel.settingList,
-								activeSetting = newsViewModel.activeSection,
-						)
-
-						SettingPicker(
-								settingTitle = ActiveSettingSectionEnum.Domain,
-								settingDescription = "get news for specific Domain",
-								listItem = ListUtil.domainList,
-								settings = newsViewModel.settingList,
-								activeSetting = newsViewModel.activeSection,
-						)
+						item {
+								SettingPicker(
+										settingTitle = ActiveSettingSectionEnum.Language,
+										settingDescription = "get news for specific language",
+										listItem = SettingList.languageList,
+										settings = newsViewModel.settingList,
+										activeSetting = newsViewModel.activeSection,
+								)
+						}
+						item {
+								SettingPicker(
+										settingTitle = ActiveSettingSectionEnum.Country,
+										settingDescription = "get news for specific Country",
+										listItem = SettingList.countryList,
+										settings = newsViewModel.settingList,
+										activeSetting = newsViewModel.activeSection,
+								)
+						}
+						item {
+								SettingPicker(
+										settingTitle = ActiveSettingSectionEnum.Domain,
+										settingDescription = "get news for specific Domain",
+										listItem = SettingList.domainList,
+										settings = newsViewModel.settingList,
+										activeSetting = newsViewModel.activeSection,
+								)
+						}
 
 				}
 		}
@@ -126,12 +143,12 @@ fun SettingPicker(
 		settings: MutableList<SettingDataClass>,
 		activeSetting: MutableState<ActiveSettingSectionEnum>
 ) {
-
 		Column {
 				Text(
 						text = settingTitle.name,
-						fontSize = 20.sp,
-						fontWeight = FontWeight.SemiBold,
+						fontFamily = FontFamily.Serif,
+						fontSize = 22.sp,
+						color = MaterialTheme.colorScheme.primary,
 						modifier = Modifier
 								.fillMaxWidth()
 								.padding(horizontal = 5.dp),
@@ -156,7 +173,10 @@ fun SettingPicker(
 						maxItemsInEachRow = 4
 				) {
 						listItem.forEach { item ->
-								val colorInt = if (settings.contains(item)) Color.LightGray else Color.White
+								val colorInt by animateColorAsState(
+										targetValue = if (settings.contains(item)) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f) else Color.White,
+										label = ""
+								)
 								Surface(
 										onClick = {
 												if (activeSetting.value != settingTitle) {
@@ -172,11 +192,11 @@ fun SettingPicker(
 										color = colorInt,
 										modifier = Modifier,
 										shape = RoundedCornerShape(10.dp),
-										border = BorderStroke(width = 1.dp, Color.Black.copy(alpha = 0.5f)),
 								) {
 										Text(
 												text = item.name,
-												fontSize = 17.sp,
+												fontSize = 18.sp,
+												fontWeight = FontWeight.Light,
 												modifier = Modifier.padding(7.dp),
 												color = Color.Black,
 										)

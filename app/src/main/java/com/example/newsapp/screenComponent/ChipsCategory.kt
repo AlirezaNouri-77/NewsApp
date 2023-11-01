@@ -1,38 +1,27 @@
 package com.example.newsapp.screenComponent
 
-import android.graphics.drawable.AnimatedImageDrawable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.newsapp.remote.viewmodel.NewsViewModel
-import com.example.newsapp.ui.theme.NewsAppTheme
 import com.example.newsapp.util.noRippleClick
 
 @Composable
@@ -57,7 +46,8 @@ fun ChipsCategory(
 		)
 
 		Surface(
-				color = Color.White
+				color = MaterialTheme.colorScheme.background,
+				contentColor = MaterialTheme.colorScheme.onBackground,
 		) {
 				LazyRow(
 						Modifier.fillMaxWidth(),
@@ -91,16 +81,20 @@ fun ChipsDesign(
 		itemSelected: Int,
 ) {
 
-		Surface(modifier = Modifier
-				.noRippleClick {
-						onClick.invoke()
-				}
-				.heightIn(min = 30.dp, max = 50.dp)
-				.padding(end = 5.dp, start = 5.dp)) {
+		Surface(
+				modifier = Modifier
+						.noRippleClick {
+								onClick.invoke()
+						}
+						.heightIn(min = 30.dp, max = 50.dp)
+						.padding(end = 5.dp, start = 5.dp),
+		) {
 
-
-				val fontSize = if (index == itemSelected) 18.sp else 14.sp
-				val fontColor = if (index == itemSelected) Color.Black else Color.Black.copy(alpha = 0.5f)
+				val fontSize = if (index == itemSelected) 20.sp else 14.sp
+				val fontColor =
+						if (index == itemSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onBackground.copy(
+								alpha = 0.5f
+						)
 				val fontWeight = if (index == itemSelected) FontWeight.SemiBold else FontWeight.Medium
 
 				AnimatedContent(
@@ -108,16 +102,16 @@ fun ChipsDesign(
 						contentAlignment = Alignment.Center,
 						transitionSpec = {
 								ContentTransform(
-										targetContentEnter = fadeIn(tween(300)),
-										initialContentExit = fadeOut(tween(200))
+										targetContentEnter = scaleIn(tween(300)),
+										initialContentExit = scaleOut(tween(300))
 								)
 						},
 						label = "",
 				) {
 						Text(
 								text = text,
-								color = fontColor,
 								fontSize = it,
+								color = fontColor,
 								fontWeight = fontWeight,
 								textAlign = TextAlign.Center,
 						)

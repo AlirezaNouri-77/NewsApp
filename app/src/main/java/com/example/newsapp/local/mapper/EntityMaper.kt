@@ -3,7 +3,7 @@ package com.example.newsapp.local.mapper
 import com.example.newsapp.local.model.NewsEntity
 import com.example.newsapp.remote.model.Article
 
-class EntityMapper : EntityMaperIpml<NewsEntity> {
+class EntityMapper : EntityMapperImpl<NewsEntity,Article> {
 		override fun entityToArticle(entitylist: List<NewsEntity>): List<Article> {
 				val mutableList: MutableList<Article> = mutableListOf()
 				entitylist.indices.forEach { index ->
@@ -47,7 +47,7 @@ class EntityMapper : EntityMaperIpml<NewsEntity> {
 
 }
 
-interface EntityMaperIpml<T> {
-		fun entityToArticle(entitylist: List<T>): List<Article>
-		fun articleToRoomEntity(article: Article): T
+interface EntityMapperImpl<T,E> {
+		fun entityToArticle(entitylist: List<T>): List<E>
+		fun articleToRoomEntity(article: E): T
 }
