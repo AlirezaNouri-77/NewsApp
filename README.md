@@ -1,5 +1,4 @@
 
-https://github.com/AlirezaNouri-77/NewsApp/assets/71293106/139e6c48-6ea3-45fb-b516-378fb644a780
 # News App
 
 ## Features
