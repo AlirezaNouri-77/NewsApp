@@ -1,3 +1,5 @@
+
+https://github.com/AlirezaNouri-77/NewsApp/assets/71293106/139e6c48-6ea3-45fb-b516-378fb644a780
 # News App
 
 ## Features
@@ -20,5 +22,7 @@ Insert your API key to following the path: com/example/newsapp/constant/constant
 ## Demo
 video size 7.03 MB
 
-https://github.com/AlirezaNouri-77/NewsApp/assets/71293106/78bbcef8-a7cf-4530-bc01-ab0b2acc3d8d
+
+https://github.com/AlirezaNouri-77/NewsApp/assets/71293106/886b134c-da38-4fdd-9350-f5ab0d48f1e4
+
 
