@@ -3,7 +3,7 @@ package com.example.newsapp.Data.Repository
 import com.example.newsapp.Data.Db.NewsRoomDatabase
 import com.example.newsapp.Domain.Entity.NewsEntity
 import com.example.newsapp.Domain.Entity.SettingEntity
-import com.example.newsapp.Domain.Model.ActiveSettingSectionEnum
+import com.example.newsapp.Domain.Model.ActiveSettingSection
 import com.example.newsapp.Domain.Model.Article
 import com.example.newsapp.Domain.Model.SettingModel
 import com.example.newsapp.Domain.Repository.LocalRepository
@@ -41,7 +41,7 @@ class DatabaseRepository(
 
 		override fun updateSetting(
 				settingEntity: List<SettingModel>,
-				settingSection: ActiveSettingSectionEnum
+				settingSection: ActiveSettingSection
 		) {
 				database.SettingDao()
 						.updateSettings(settingEntity = settingEntity, settingSection = settingSection)

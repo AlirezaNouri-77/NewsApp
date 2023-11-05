@@ -7,6 +7,7 @@ import com.example.newsapp.Domain.Model.Article
 import com.example.newsapp.Domain.Model.BaseViewModelContract
 import com.example.newsapp.Domain.Model.NewsModel
 import com.example.newsapp.Data.Repository.NewsRepository
+import com.example.newsapp.Domain.Model.UiPagingState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -32,18 +33,15 @@ class NewsSearchViewModel(
 
 		private var _baseState =
 				MutableStateFlow<BaseViewModelContract.BaseState>(BaseViewModelContract.BaseState.Idle)
-		override var baseState: StateFlow<BaseViewModelContract.BaseState>
-				get() = _baseState.asStateFlow()
-				set(value) {}
+		override var baseState: StateFlow<BaseViewModelContract.BaseState> = _baseState.asStateFlow()
+
 		private var _baseEvent = Channel<BaseViewModelContract.BaseEvent>(Channel.UNLIMITED)
-		override var baseEvent: Flow<BaseViewModelContract.BaseEvent>
-				get() = _baseEvent.receiveAsFlow()
-				set(value) {}
+		override var baseEvent: Flow<BaseViewModelContract.BaseEvent> = _baseEvent.receiveAsFlow()
+
 		private var _baseEffect =
 				MutableSharedFlow<BaseViewModelContract.BaseEffect>()
-		override var baseEffect: SharedFlow<BaseViewModelContract.BaseEffect>
-				get() = _baseEffect.asSharedFlow()
-				set(value) {}
+		override var baseEffect: SharedFlow<BaseViewModelContract.BaseEffect> =
+				_baseEffect.asSharedFlow()
 
 		init {
 				eventHandler()
@@ -101,6 +99,7 @@ class NewsSearchViewModel(
 				viewModelScope.launch {
 						baseEvent.collectLatest { event ->
 								when (event) {
+
 										is BaseViewModelContract.BaseEvent.GetData -> {
 												newsRepository.getNewsSearch(
 														userSearch = userQuery.value,
@@ -109,6 +108,7 @@ class NewsSearchViewModel(
 														_baseState.value = it
 												}
 										}
+
 										is BaseViewModelContract.BaseEvent.ClearPaging -> {
 												searchNewsList.clear()
 												nextPage.value = ""

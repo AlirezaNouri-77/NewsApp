@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.newsapp.Domain.Model.ActiveSettingSectionEnum
+import com.example.newsapp.Domain.Model.ActiveSettingSection
 import com.example.newsapp.Domain.Model.BaseViewModelContract
 import com.example.newsapp.Domain.Model.SettingModel
 import com.example.newsapp.Presentation.ViewModel.NewsViewModel
@@ -114,7 +114,7 @@ fun BottomSheetSetting(
 
 						item {
 								SettingPicker(
-										settingTitle = ActiveSettingSectionEnum.Language,
+										settingTitle = ActiveSettingSection.Language,
 										settingDescription = "get news for specific language",
 										listItem = SettingList.languageList,
 										settings = settingsList,
@@ -123,7 +123,7 @@ fun BottomSheetSetting(
 						}
 						item {
 								SettingPicker(
-										settingTitle = ActiveSettingSectionEnum.Country,
+										settingTitle = ActiveSettingSection.Country,
 										settingDescription = "get news for specific Country",
 										listItem = SettingList.countryList,
 										settings = settingsList,
@@ -132,7 +132,7 @@ fun BottomSheetSetting(
 						}
 						item {
 								SettingPicker(
-										settingTitle = ActiveSettingSectionEnum.Domain,
+										settingTitle = ActiveSettingSection.Domain,
 										settingDescription = "get news for specific Domain",
 										listItem = SettingList.domainList,
 										settings = settingsList,
@@ -147,11 +147,11 @@ fun BottomSheetSetting(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingPicker(
-		settingTitle: ActiveSettingSectionEnum,
+		settingTitle: ActiveSettingSection,
 		settingDescription: String,
 		listItem: List<SettingModel>,
 		settings: MutableList<SettingModel>,
-		activeSetting: MutableState<ActiveSettingSectionEnum>,
+		activeSetting: MutableState<ActiveSettingSection>,
 ) {
 		Column {
 				Text(

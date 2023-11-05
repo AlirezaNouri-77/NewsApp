@@ -27,20 +27,14 @@ class LocalViewModel(
 
 		private var _baseState =
 				MutableStateFlow<BaseViewModelContract.BaseState>(BaseViewModelContract.BaseState.Idle)
-		override var baseState: StateFlow<BaseViewModelContract.BaseState>
-				get() = _baseState.asStateFlow()
-				set(value) {}
+		override var baseState: StateFlow<BaseViewModelContract.BaseState> = _baseState.asStateFlow()
 
 		private var _baseEvent = Channel<BaseViewModelContract.BaseEvent>(Channel.UNLIMITED)
-		override var baseEvent: Flow<BaseViewModelContract.BaseEvent>
-				get() = _baseEvent.receiveAsFlow()
-				set(value) {}
+		override var baseEvent: Flow<BaseViewModelContract.BaseEvent> = _baseEvent.receiveAsFlow()
 
-		private var _baseEffect =
-				MutableSharedFlow<BaseViewModelContract.BaseEffect>()
-		override var baseEffect: SharedFlow<BaseViewModelContract.BaseEffect>
-				get() = _baseEffect.asSharedFlow()
-				set(value) {}
+		private var _baseEffect = MutableSharedFlow<BaseViewModelContract.BaseEffect>()
+		override var baseEffect: SharedFlow<BaseViewModelContract.BaseEffect> =
+				_baseEffect.asSharedFlow()
 
 		init {
 				eventHandler()
@@ -64,6 +58,7 @@ class LocalViewModel(
 												} else {
 														_baseState.value = BaseViewModelContract.BaseState.Empty("")
 												}
+
 										}
 
 										is BaseViewModelContract.BaseEvent.InsertNews -> {

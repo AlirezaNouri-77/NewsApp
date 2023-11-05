@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.newsapp.Domain.Entity.SettingEntity
-import com.example.newsapp.Domain.Model.ActiveSettingSectionEnum
+import com.example.newsapp.Domain.Model.ActiveSettingSection
 import com.example.newsapp.Domain.Model.SettingModel
 import kotlinx.coroutines.flow.Flow
 
@@ -18,7 +18,7 @@ interface SettingDao {
 		fun deleteAll()
 
 		@Query("UPDATE SettingTable SET settingList =:settingEntity , activeSettingSection =:settingSection WHERE ID = 1")
-		fun updateSettings(settingEntity: List<SettingModel>, settingSection: ActiveSettingSectionEnum)
+		fun updateSettings(settingEntity: List<SettingModel>, settingSection: ActiveSettingSection)
 
 		@Query("SELECT * FROM SettingTable")
 		fun getSettings(): Flow<List<SettingEntity>>

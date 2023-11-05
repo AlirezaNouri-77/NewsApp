@@ -9,11 +9,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.newsapp.Data.Repository.DatabaseRepository
 import com.example.newsapp.Data.Repository.NewsRepository
-import com.example.newsapp.Domain.Model.ActiveSettingSectionEnum
+import com.example.newsapp.Domain.Model.ActiveSettingSection
 import com.example.newsapp.Domain.Model.Article
 import com.example.newsapp.Domain.Model.BaseViewModelContract
 import com.example.newsapp.Domain.Model.NewsModel
 import com.example.newsapp.Domain.Model.SettingModel
+import com.example.newsapp.Domain.Model.UiPagingState
 import com.example.newsapp.Presentation.util.convertToString
 import com.example.newsapp.Presentation.util.onIO
 import kotlinx.coroutines.channels.Channel
@@ -26,9 +27,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.Locale
 
 class NewsViewModel(
@@ -41,8 +40,8 @@ class NewsViewModel(
 		var canPaging = true
 
 		var settingList: MutableList<SettingModel> = mutableStateListOf()
-		var activeSection: MutableState<ActiveSettingSectionEnum> = mutableStateOf(
-				ActiveSettingSectionEnum.Idle
+		var activeSection: MutableState<ActiveSettingSection> = mutableStateOf(
+				ActiveSettingSection.Idle
 		)
 
 		var UiState = mutableStateOf(UiPagingState.Idle)
@@ -53,32 +52,27 @@ class NewsViewModel(
 
 		private var _baseState =
 				MutableStateFlow<BaseViewModelContract.BaseState>(BaseViewModelContract.BaseState.Idle)
-		override var baseState: StateFlow<BaseViewModelContract.BaseState>
-				get() = _baseState.asStateFlow()
-				set(value) {}
+		override var baseState: StateFlow<BaseViewModelContract.BaseState> = _baseState.asStateFlow()
 
 		private var _baseEvent = Channel<BaseViewModelContract.BaseEvent>(Channel.UNLIMITED)
-		override var baseEvent: Flow<BaseViewModelContract.BaseEvent>
-				get() = _baseEvent.receiveAsFlow()
-				set(value) {}
+		override var baseEvent: Flow<BaseViewModelContract.BaseEvent> = _baseEvent.receiveAsFlow()
 
 		private var _baseEffect =
 				MutableSharedFlow<BaseViewModelContract.BaseEffect>()
-
-		override var baseEffect: SharedFlow<BaseViewModelContract.BaseEffect>
-				get() = _baseEffect.asSharedFlow()
-				set(value) {}
+		override var baseEffect: SharedFlow<BaseViewModelContract.BaseEffect> =
+				_baseEffect.asSharedFlow()
 
 		init {
 				eventHandler()
-				handleState()
+				stateHandler()
 				setBaseEvent(BaseViewModelContract.BaseEvent.GetSettings)
 		}
 
-		private fun handleState() {
+		private fun stateHandler() {
 				viewModelScope.launch {
 						baseState.collect { state ->
 								when (state) {
+
 										is BaseViewModelContract.BaseState.Success -> {
 												val data = (state.data as NewsModel)
 												if (nextPage.value.isEmpty()) {
@@ -108,62 +102,56 @@ class NewsViewModel(
 														if (newsMutableList.size == 0) UiPagingState.Error else UiPagingState.PagingError
 												canPaging = false
 										}
-
 										else -> {}
 								}
 						}
 				}
 		}
 
-		private fun eventHandler() {
-				viewModelScope.launch {
-						baseEvent.collect { state ->
-								when (state) {
+		private fun eventHandler() = viewModelScope.launch {
+				baseEvent.collectLatest { state ->
+						when (state) {
 
-										is BaseViewModelContract.BaseEvent.GetData -> {
-												newsRepository.getNews(
-														category = newsCategory.value,
-														nextPage = nextPage.value,
-														settingCategory = activeSection.value.name.lowercase(Locale.getDefault()),
-														settingQuery = settingList.convertToString(),
-												).collectLatest {
-														_baseState.value = it
-												}
+								is BaseViewModelContract.BaseEvent.GetData -> {
+										newsRepository.getNews(
+												category = newsCategory.value,
+												nextPage = nextPage.value,
+												settingCategory = activeSection.value.name.lowercase(Locale.getDefault()),
+												settingQuery = settingList.convertToString(),
+										).collectLatest {
+												_baseState.value = it
 										}
-
-										is BaseViewModelContract.BaseEvent.ClearPaging -> {
-												newsMutableList.clear()
-												nextPage.value = ""
-												newsListScrollState.intValue = 0
-										}
-
-										is BaseViewModelContract.BaseEvent.GetSettings -> {
-												viewModelScope.launch {
-														databaseRepository.getSettings().stateIn(viewModelScope).collectLatest {
-																activeSection.value = it.first().activeSettingSection
-																settingList = it.first().settingList.toMutableStateList()
-																setBaseEvent(BaseViewModelContract.BaseEvent.GetData())
-														}
-												}
-										}
-
-										is BaseViewModelContract.BaseEvent.UpdateSettings -> {
-												runBlocking {
-														onIO {
-																databaseRepository.updateSetting(
-																		settingSection = state.category,
-																		settingEntity = state.setting,
-																)
-														}
-												}
-										}
-
-										else -> {}
-
 								}
+
+								is BaseViewModelContract.BaseEvent.ClearPaging -> {
+										newsMutableList.clear()
+										nextPage.value = ""
+										newsListScrollState.intValue = 0
+								}
+
+								is BaseViewModelContract.BaseEvent.GetSettings -> {
+										databaseRepository.getSettings().collectLatest { setting ->
+												activeSection.value = setting.first().activeSettingSection
+												settingList = setting.first().settingList.toMutableStateList()
+												setBaseEvent(BaseViewModelContract.BaseEvent.GetData())
+										}
+								}
+
+								is BaseViewModelContract.BaseEvent.UpdateSettings -> {
+										onIO {
+												databaseRepository.updateSetting(
+														settingSection = state.category,
+														settingEntity = state.setting,
+												)
+										}
+								}
+
+								else -> {}
+
 						}
 				}
 		}
+
 
 		override fun setBaseEvent(newsEvent: BaseViewModelContract.BaseEvent) {
 				viewModelScope.launch {
@@ -177,8 +165,4 @@ class NewsViewModel(
 				}
 		}
 
-}
-
-enum class UiPagingState {
-		Loading, PagingLoading, Error, PagingError, Idle, Empty
 }

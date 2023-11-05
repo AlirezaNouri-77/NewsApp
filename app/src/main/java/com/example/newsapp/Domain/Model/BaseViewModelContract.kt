@@ -24,7 +24,7 @@ interface BaseViewModelContract :
 
 				data class InsertNews(var article: Article) : BaseEvent()
 				data class UpdateSettings(
-						var category: ActiveSettingSectionEnum = ActiveSettingSectionEnum.Idle,
+						var category: ActiveSettingSection = ActiveSettingSection.Idle,
 						var setting: List<SettingModel> = emptyList()
 				) : BaseEvent()
 

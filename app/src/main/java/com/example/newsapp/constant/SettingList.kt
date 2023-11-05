@@ -1,7 +1,7 @@
 package com.example.newsapp.constant
 
 import com.example.newsapp.Domain.Entity.SettingEntity
-import com.example.newsapp.Domain.Model.ActiveSettingSectionEnum
+import com.example.newsapp.Domain.Model.ActiveSettingSection
 import com.example.newsapp.Domain.Model.SettingModel
 
 data object SettingList {
@@ -45,7 +45,7 @@ data object SettingList {
 
 		val PrepopulateDatabase = SettingEntity(
 				id = 0,
-				activeSettingSection = ActiveSettingSectionEnum.Language,
+				activeSettingSection = ActiveSettingSection.Language,
 				settingList = listOf(
 						SettingModel(
 								name = "English",

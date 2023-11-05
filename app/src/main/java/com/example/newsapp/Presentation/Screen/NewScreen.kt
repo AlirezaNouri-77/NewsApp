@@ -144,5 +144,3 @@ fun NewsScreen(
 				}
 		}
 }
-
-data class Holder(var value: Boolean)
