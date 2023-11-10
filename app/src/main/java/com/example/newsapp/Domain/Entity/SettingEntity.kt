@@ -7,10 +7,10 @@ import com.example.newsapp.Domain.Model.SettingModel
 
 @Entity(tableName = "SettingTable")
 data class SettingEntity(
-		@PrimaryKey(autoGenerate = true)
-		var id: Int = 0,
-		var activeSettingSection: ActiveSettingSection,
-		var settingList: List<SettingModel>,
+  @PrimaryKey(autoGenerate = true)
+  var id: Int = 0,
+  var activeSettingSection: ActiveSettingSection,
+  var settingList: List<SettingModel>,
 )
 
 
